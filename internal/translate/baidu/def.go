@@ -4,10 +4,6 @@ const (
 	api = "http://api.fanyi.baidu.com/api/trans/vip/translate"
 )
 
-type Config struct {
-	AppId     string
-	SecretKey string
-}
 type transResult struct {
 	Src string `json:"src"`
 	Dst string `json:"dst"`
@@ -17,8 +13,8 @@ type response struct {
 	From        string        `json:"from"`
 	To          string        `json:"to"`
 	TransResult []transResult `json:"trans_result"`
-	ErrorCode   string         `json:"error_code"`
-	ErrorMsg string `json:"error_msg"`
+	ErrorCode   string        `json:"error_code"`
+	ErrorMsg    string        `json:"error_msg"`
 }
 
 const (

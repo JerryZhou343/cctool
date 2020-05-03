@@ -1,7 +1,36 @@
 package main
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/JerryZhou343/cctool/internal/app"
+	"github.com/JerryZhou343/cctool/internal/conf"
+	"github.com/JerryZhou343/cctool/internal/flags"
+	"github.com/spf13/cobra"
+	"log"
+)
 
 func main() {
-	rootCmd := cobra.Command{}
+	var (
+		application  = app.NewApplication()
+		rootCmd      = cobra.Command{}
+		translateCmd = cobra.Command{
+			Use:   "translate",
+			Short: "翻译字幕",
+			Run: func(cmd *cobra.Command, args []string) {
+				conf.Init()
+				err := application.Translate()
+				if err != nil{
+					log.Printf("%+v",err)
+				}
+			},
+		}
+	)
+
+	translateCmd.PersistentFlags().StringSliceVarP(&flags.SrcFiles, "source", "s", []string{}, "源文件")
+	translateCmd.PersistentFlags().StringVarP(&flags.From, "from", "f", "en", "源语言")
+	translateCmd.PersistentFlags().StringVarP(&flags.To, "to", "t", "zh", "目标语言")
+	translateCmd.PersistentFlags().StringVarP(&flags.TransTool, "transtool", "", "baidu", "翻译器")
+	translateCmd.PersistentFlags().BoolVarP(&flags.Merge, "merge", "m", false, "双语字幕")
+
+	rootCmd.AddCommand(&translateCmd)
+	rootCmd.Execute()
 }

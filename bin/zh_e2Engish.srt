@@ -1,0 +1,630 @@
+1
+00:00:02,500 --> 00:00:07,370
+今天我想谈谈去哪
+today I'd like to talk about GO which
+
+2
+00:00:07,370 --> 00:00:08,990
+很有趣特别有趣
+is interesting especially interesting
+
+3
+00:00:08,990 --> 00:00:10,849
+在这门课上因为
+for us in this course because course GO
+
+4
+00:00:10,849 --> 00:00:12,709
+实验室里的语言
+is the language at the labs you're all
+
+5
+00:00:12,709 --> 00:00:14,450
+去做实验室所以我想
+going to do the labs in and so I want to
+
+6
+00:00:14,450 --> 00:00:17,090
+今天特别关注
+focus today particularly on some of the
+
+7
+00:00:17,090 --> 00:00:19,280
+最有用的机械
+machinery that sort of most useful in
+
+8
+00:00:19,280 --> 00:00:22,940
+实验室，尤其是
+the labs and in most particular to
+
+9
+00:00:22,940 --> 00:00:26,170
+分布式程序设计
+distributed programming um first of all
+
+10
+00:00:26,170 --> 00:00:29,600
+你知道我们为什么要用围棋
+you know it's worth asking why we use go
+
+11
+00:00:29,600 --> 00:00:32,180
+在这个班上实际上我们可以用
+in this class in fact we could have used
+
+12
+00:00:32,180 --> 00:00:33,890
+其他系统中的任何一个
+any one of a number of other system
+
+13
+00:00:33,890 --> 00:00:35,899
+风格语言很多语言像
+style languages plenty languages like
+
+14
+00:00:35,899 --> 00:00:38,210
+Java或C sharp，甚至Python
+Java or C sharp or even Python that
+
+15
+00:00:38,210 --> 00:00:40,730
+提供我们需要的设施
+provide the kind of facilities we need
+
+16
+00:00:40,730 --> 00:00:42,859
+事实上，我们在这个时候使用C++
+and indeed we used to use C++ in this
+
+17
+00:00:42,859 --> 00:00:47,079
+上课，结果很好
+class and it worked out fine it'll go
+
+18
+00:00:47,079 --> 00:00:49,010
+确实像许多其他语言一样
+indeed like many other languages
+
+19
+00:00:49,010 --> 00:00:50,719
+提供了一系列特性
+provides a bunch of features which are
+
+20
+00:00:50,719 --> 00:00:51,649
+特别方便
+particularly convenient
+
+21
+00:00:51,649 --> 00:00:53,409
+这对线程和
+that's good support for threads and
+
+22
+00:00:53,409 --> 00:00:56,659
+锁定和同步
+locking and synchronization between
+
+23
+00:00:56,659 --> 00:00:59,239
+我们经常使用的线是
+threads which we use a lot it is a
+
+24
+00:00:59,239 --> 00:01:01,789
+方便的远程过程调用包
+convenient remote procedure call package
+
+25
+00:01:01,789 --> 00:01:04,879
+听起来不多，但是
+which doesn't sound like much but it
+
+26
+00:01:04,879 --> 00:01:06,380
+事实证明是一个重要的
+actually turns out to be a significant
+
+27
+00:01:06,380 --> 00:01:09,950
+C++语言中的约束
+constraint from in languages like C++
+
+28
+00:01:09,950 --> 00:01:11,210
+举个例子，实际上有点难
+for example it's actually a bit hard to
+
+29
+00:01:11,210 --> 00:01:13,579
+找到一个方便易用的遥控器
+find a convenient easy to use remote
+
+30
+00:01:13,579 --> 00:01:14,930
+程序调用包，当然我们
+procedure call package and of course we
+
+31
+00:01:14,930 --> 00:01:16,570
+在本课程中一直使用它，或者
+use it all the time in this course or
+
+32
+00:01:16,570 --> 00:01:18,409
+程序和不同的机器
+programs and different machines to talk
+
+33
+00:01:18,409 --> 00:01:22,610
+彼此不同的是C++ + GO是类型安全的
+to each other unlike C++ go is type safe
+
+34
+00:01:22,610 --> 00:01:25,100
+记忆安全，这很难
+and memory safe that is it's pretty hard
+
+35
+00:01:25,100 --> 00:01:27,619
+编写一个由于错误而导致的程序
+to write a program that due to a bug
+
+36
+00:01:27,619 --> 00:01:29,180
+在一些随机的
+scribbles over some random piece of
+
+37
+00:01:29,180 --> 00:01:31,340
+然后使程序执行
+memory and then causes the program to do
+
+38
+00:01:31,340 --> 00:01:34,789
+神秘的东西
+mysterious things and that just
+
+39
+00:01:34,789 --> 00:01:36,320
+类似地消除一大类错误
+eliminates a big class of bugs similarly
+
+40
+00:01:36,320 --> 00:01:39,680
+这是垃圾收集，这意味着你
+it's garbage collected which means you
+
+41
+00:01:39,680 --> 00:01:41,869
+永远不会有相同的记忆
+never in danger of priam the same memory
+
+42
+00:01:41,869 --> 00:01:44,509
+两次或释放仍在使用的内存
+twice or free memory that's still in use
+
+43
+00:01:44,509 --> 00:01:46,340
+或者垃圾向量
+or something the garbage vector just
+
+44
+00:01:46,340 --> 00:01:48,859
+当它们停止使用时释放它们
+frees things when they stop being used
+
+45
+00:01:48,859 --> 00:01:51,920
+有一件事可能不明显
+and one thing it's maybe not obvious
+
+46
+00:01:51,920 --> 00:01:54,829
+直到你玩弄这个
+until you played around with just this
+
+47
+00:01:54,829 --> 00:01:56,719
+有点像以前的程序，但是
+kind of programming before but the
+
+48
+00:01:56,719 --> 00:01:58,640
+线程和垃圾的组合
+combination of threads and garbage
+
+49
+00:01:58,640 --> 00:02:01,880
+收藏尤其重要
+collection is particularly important one
+
+50
+00:02:01,880 --> 00:02:03,200
+在一个非
+of the things that goes wrong in a non
+
+51
+00:02:03,200 --> 00:02:06,109
+垃圾回收语言，如C++
+garbage collected language like C++ if
+
+52
+00:02:06,109 --> 00:02:08,899
+你使用的线程是
+you use threads is that it's always a
+
+53
+00:02:08,899 --> 00:02:10,690
+有点困惑，需要一堆
+bit of a puzzle and requires a bunch of
+
+54
+00:02:10,690 --> 00:02:13,430
+记账以计算最后一次
+bookkeeping to figure out when the last
+
+55
+00:02:13,430 --> 00:02:14,190
+线
+thread
+
+56
+00:02:14,190 --> 00:02:15,660
+使用共享对象的
+that's using a shared object has
+
+57
+00:02:15,660 --> 00:02:17,340
+使用完该对象，因为
+finished using that object because only
+
+58
+00:02:17,340 --> 00:02:19,530
+那么你能在结束时释放这个物体吗
+then can you free the object as you end
+
+59
+00:02:19,530 --> 00:02:20,910
+写了不少外套
+up writing quite a bit of coat it's like
+
+60
+00:02:20,910 --> 00:02:22,620
+手动编程这是关于
+manually the programmer it's about a
+
+61
+00:02:22,620 --> 00:02:24,480
+一堆手工代码
+bunch of code to manually you know do
+
+62
+00:02:24,480 --> 00:02:26,580
+参考计数或其他
+reference counting or something in order
+
+63
+00:02:26,580 --> 00:02:28,470
+你知道最后一次
+to figure out you know when the last
+
+64
+00:02:28,470 --> 00:02:30,030
+线程停止使用对象并
+thread stopped using an object and
+
+65
+00:02:30,030 --> 00:02:32,460
+那只是个痛苦和问题
+that's just a pain and that problem
+
+66
+00:02:32,460 --> 00:02:34,710
+如果你用垃圾就完全消失了
+completely goes away if you use garbage
+
+67
+00:02:34,710 --> 00:02:36,560
+像我们没去似的收藏
+collection like we haven't go
+
+68
+00:02:36,560 --> 00:02:39,390
+最后语言很简单
+and finally the language is simple much
+
+69
+00:02:39,390 --> 00:02:41,460
+比C++更简单的问题之一
+simpler than C++ one of the problems
+
+70
+00:02:41,460 --> 00:02:44,640
+使用C++是经常这样做的
+with using C++ is that often if you made
+
+71
+00:02:44,640 --> 00:02:47,250
+你知道的一个错误也许只是一个打字错误
+an error you know maybe even just a typo
+
+72
+00:02:47,250 --> 00:02:51,420
+返回的错误消息
+the the error message you get back from
+
+73
+00:02:51,420 --> 00:02:53,730
+编译器是如此复杂以至于
+the compiler is so complicated that in
+
+74
+00:02:53,730 --> 00:02:56,160
+C++通常不值得尝试
+C++ it's usually not worth trying to
+
+75
+00:02:56,160 --> 00:02:57,510
+找出错误消息的含义
+figure out what the error message meant
+
+76
+00:02:57,510 --> 00:02:59,520
+我发现总是快得多
+and I find it's always just much quicker
+
+77
+00:02:59,520 --> 00:03:01,470
+去看看行号然后试着
+to go look at the line number and try to
+
+78
+00:03:01,470 --> 00:03:02,670
+猜猜是什么错误
+guess what the error must have been
+
+79
+00:03:02,670 --> 00:03:04,170
+因为语言太过分了
+because the language is far too
+
+80
+00:03:04,170 --> 00:03:04,800
+复杂的
+complicated
+
+81
+00:03:04,800 --> 00:03:07,140
+但是你知道，你可能不知道
+whereas go is you know probably doesn't
+
+82
+00:03:07,140 --> 00:03:09,710
+有很多人们喜欢的功能
+have a lot of people's favorite features
+
+83
+00:03:09,710 --> 00:03:11,580
+但相对来说
+but it's relatively straightforward
+
+84
+00:03:11,580 --> 00:03:14,940
+语言没问题，所以现在你
+language okay so at this point you're
+
+85
+00:03:14,940 --> 00:03:17,250
+如果你在看的话
+both on the tutorial if you're looking
+
+86
+00:03:17,250 --> 00:03:19,290
+因为你知道该看什么
+for sort of you know what to look at
+
+87
+00:03:19,290 --> 00:03:21,630
+下一个学习语言的好
+next to learn about the language a good
+
+88
+00:03:21,630 --> 00:03:23,190
+文件的标题是
+place to look is the document titled
+
+89
+00:03:23,190 --> 00:03:25,590
+你知道你能找到的有效方法
+effective go which you know you can find
+
+90
+00:03:25,590 --> 00:03:30,390
+先在网上搜索
+by searching the web all right the first
+
+91
+00:03:30,390 --> 00:03:33,110
+我想说的是线
+thing I want to talk about is threads
+
+92
+00:03:33,110 --> 00:03:35,940
+我们为什么那么在乎
+the reason why we care a lot about
+
+93
+00:03:35,940 --> 00:03:39,000
+本课程的主题是
+threads in this course is that threads
+
+94
+00:03:39,000 --> 00:03:41,459
+是我们的主要工具
+are the sort of main tool we're going to
+
+95
+00:03:41,459 --> 00:03:44,370
+用于管理中的并发
+be using to manage concurrency in
+
+96
+00:03:44,370 --> 00:03:47,340
+程序和并发是一个特殊的
+programs and concurrency is a particular
+
+97
+00:03:47,340 --> 00:03:49,920
+对分布式编程的兴趣
+interest in distributed programming
+
+98
+00:03:49,920 --> 00:03:52,440
+因为通常情况下
+because it's often the case that one
+
+99
+00:03:52,440 --> 00:03:53,820
+程序实际上需要与
+program actually needs to talk to a
+
+100
+00:03:53,820 --> 00:03:55,890
+你认识的其他电脑客户
+bunch of other computers you know client
+
+101
+00:03:55,890 --> 00:03:58,230
+可能与多个服务器通信，或者一个服务器可能
+may talk to many servers or a server may
+
+102
+00:03:58,230 --> 00:04:00,300
+同时满足要求
+be serving requests at the same time on
+
+103
+00:04:00,300 --> 00:04:02,430
+代表许多不同的客户
+behalf of many different clients and so
+
+104
+00:04:02,430 --> 00:04:04,830
+我们需要一种方式说哦你知道我是我的
+we need a way to say oh you know I'm my
+
+105
+00:04:04,830 --> 00:04:06,030
+程序真的有七个不同的
+program really has seven different
+
+106
+00:04:06,030 --> 00:04:07,410
+事情之所以会这样，是因为它在和
+things going on because it's talking to
+
+107
+00:04:07,410 --> 00:04:10,110
+七个不同的客户我想要一个
+seven different clients and I want a
+
+108
+00:04:10,110 --> 00:04:12,450
+让它做这七件事的简单方法
+simple way to allow it to do these seven
+
+109
+00:04:12,450 --> 00:04:14,459
+不同的事情你知道没有太多
+different things you know without too
+
+110
+00:04:14,459 --> 00:04:16,858
+非常复杂的编程我是说
+much complex programming I mean sort of
+
+111
+00:04:16,858 --> 00:04:19,589
+推力线就是答案，所以
+thrust threads are the answer so these
+
+112
+00:04:19,589 --> 00:04:21,630
+是go文档
+are the things that the go documentation
+
+113
+00:04:21,630 --> 00:04:24,419
+调用我称之为线程的go例程
+calls go routines which I call threads
+
+114
+00:04:24,419 --> 00:04:26,789
+他们走的路线都是一样的
+they're go routines are really this same
+
+115
+00:04:26,789 --> 00:04:27,880
+就像其他人所说的
+as what everybody else calls
+
+116
+00:04:27,880 --> 00:04:32,560
+红色是线的思维方式
+Red's so the way to think of threads is
+
+117
+00:04:32,560 --> 00:04:36,600
+你只有一个程序
+that you have a program of one program
+
+118
+00:04:36,600 --> 00:04:43,120
+一个地址空间我要画一个
+and one address space I'm gonna draw a
+
+119
+00:04:43,120 --> 00:04:46,060
+表示地址空间的框
+box to sort of denote an address space
+
+120
+00:04:46,060 --> 00:04:48,250
+在地址空间内
+and within that address space in a
+
+121
+00:04:48,250 --> 00:04:51,520
+没有线程的串行程序
+serial program without threads you just
+
+122
+00:04:51,520 --> 00:04:54,550
+有一个执行线程正在执行
+have one thread of execution executing
+
+123
+00:04:54,550 --> 00:04:57,040
+地址空间中的代码一个程序
+code in that address space one program
+
+124
+00:04:57,040 --> 00:05:00,100
+计数器一组寄存器一个堆栈
+counter one set of registers one stack
+
+125
+00:05:00,100 --> 00:05:02,080
+有点像是在描述
+that are sort of describing the current
+
+126
+00:05:02,080 --> 00:05:04,180
+线程中的执行状态
+state of the execution in a threaded
+

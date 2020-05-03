@@ -1,0 +1,4 @@
+baidu:
+  app_id: xxxxxxxxxxxxxxxxx
+  secret_key: xxxxxxxxxxxxxxxxxxxx
+  interval: 100 #毫秒

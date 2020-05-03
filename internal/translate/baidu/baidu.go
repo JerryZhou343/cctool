@@ -3,8 +3,9 @@ package baidu
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/JerryZhou343/cctool/internal/conf"
 	"github.com/JerryZhou343/cctool/internal/status"
-	"github.com/JerryZhou343/cctool/internal/translate/common"
+	"github.com/JerryZhou343/cctool/internal/translate"
 	"github.com/JerryZhou343/cctool/internal/utils"
 	"github.com/pkg/errors"
 	"io/ioutil"
@@ -18,23 +19,22 @@ import (
 //https://api.fanyi.baidu.com/doc/21
 
 type Translator struct {
-	cfg *Config
+	cfg *conf.ApiConf
 }
 
-func NewTranslator(cfg *Config) *Translator {
-	ret := Translator{
+func NewTranslator(cfg *conf.ApiConf) translate.Translate {
+	ret := &Translator{
 		cfg: cfg,
 	}
-	return &ret
+	return ret
 }
 
-func (t *Translator) Do(src string, channel common.Channel) (dst string, err error) {
+func (t *Translator) Do(src, from, to string) (dst string, err error) {
 	var (
 		params *url.Values
 		ret    *response
 	)
 	params = &url.Values{}
-	from, to := t.getFromTo(channel)
 	salt := t.genSalt()
 	params.Add("q", src)
 	params.Add("appid", t.cfg.AppId)
@@ -48,23 +48,14 @@ func (t *Translator) Do(src string, channel common.Channel) (dst string, err err
 		return
 	}
 
-	if ret.ErrorCode != "0" && ret.ErrorCode != OK {
-		err = errors.WithMessage(status.ErrHttpCallFailed, fmt.Sprintf("%+v", ErrCode[ret.ErrorCode]))
+	if ret.ErrorCode != "" && ret.ErrorCode != "0" && ret.ErrorCode != OK {
+		err = errors.WithMessage(status.ErrHttpCallFailed, fmt.Sprintf("[%+v]", ErrCode[ret.ErrorCode]))
 		return
 	}
-	if len(ret.TransResult) > 0{
+	if len(ret.TransResult) > 0 {
 		return ret.TransResult[0].Dst, nil
 	}
-	return "",status.ErrTranslateFailed
-}
-
-func (t *Translator) getFromTo(channel common.Channel) (string, string) {
-	switch channel {
-	case common.Channel_En2Zh:
-		return "en", "zh"
-	default:
-		return "auto", "zh"
-	}
+	return "", status.ErrTranslateFailed
 }
 
 func (t *Translator) genSign(src string, salt string) string {
@@ -100,7 +91,7 @@ func (t *Translator) call(params *url.Values) (ret *response, err error) {
 	if err != nil {
 		return
 	}
-	log.Printf("%+v",string(content))
+	log.Printf("%+v", string(content))
 	ret = &response{}
 	json.Unmarshal(content, ret)
 

@@ -3,7 +3,7 @@ package srt
 import (
 	"bufio"
 	"fmt"
-	"github.com/JerryZhou343/ClosedCaption/internal/status"
+	"github.com/JerryZhou343/cctool/internal/status"
 	"github.com/pkg/errors"
 	"io"
 	"os"
@@ -59,7 +59,7 @@ func Open(filePath string) (rets []*Srt, err error) {
 			tmp = new(Srt)
 			lineState = StateSequence
 		case StateSequence:
-			tmp.Sequence, err = strconv.Atoi(strings.Trim(line, "\n"))
+			tmp.Sequence, err = strconv.Atoi(strings.Trim(line, "\r\n"))
 			if err != nil {
 				err = errors.WithMessage(status.ErrSequence, fmt.Sprintf("文件: %s 行号: %d", filePath, lineNumber))
 				return
@@ -72,11 +72,11 @@ func Open(filePath string) (rets []*Srt, err error) {
 				err = errors.WithMessage(status.ErrTimeLine, fmt.Sprintf("文件：%s,行号：%d", filePath, lineNumber))
 				return
 			}
-			tmp.start = infos[0]
-			tmp.end = infos[2]
+			tmp.Start = infos[0]
+			tmp.End = infos[2]
 
 		case StateSubtitle:
-			tmp.subtitle += line
+			tmp.Subtitle += line
 		}
 
 		lineNumber++

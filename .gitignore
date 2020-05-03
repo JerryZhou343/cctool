@@ -15,3 +15,5 @@
 # vendor/
 .idea
 internal/translate/baidu/baidu_test.go
+bin/config.yaml_bak
+bin/cctool

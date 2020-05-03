@@ -2,9 +2,9 @@ package srt
 
 type Srt struct {
 	Sequence int
-	start    string
-	end      string
-	subtitle string
+	Start    string
+	End      string
+	Subtitle string
 }
 
 type SrtSort []*Srt

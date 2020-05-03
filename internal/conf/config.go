@@ -1,5 +1,34 @@
 package conf
 
+import (
+	"github.com/JerryZhou343/cctool/internal/status"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"log"
+)
+
+var (
+	G_Config Config
+)
+
+
+type ApiConf struct {
+	AppId     string `yaml:"app_id"`
+	SecretKey string `yaml:"secret_key"`
+	Interval int64 `yaml:"interval"`
+}
+
 type Config struct {
-	TranslateTool string
+	Baidu ApiConf `yaml:"baidu"`
+}
+
+func Init() error {
+	f, err := ioutil.ReadFile("config.yaml")
+	if err != nil {
+		return status.ErrNotFoundConfig
+	}
+	err = yaml.Unmarshal(f, &G_Config)
+	log.Printf("%s: %+v \n",string(f),err)
+	log.Printf("%+v",G_Config)
+	return err
 }
