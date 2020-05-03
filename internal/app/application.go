@@ -1,17 +1,14 @@
 package app
 
 import (
-	"fmt"
 	"github.com/JerryZhou343/cctool/internal/conf"
 	"github.com/JerryZhou343/cctool/internal/flags"
 	"github.com/JerryZhou343/cctool/internal/srt"
 	"github.com/JerryZhou343/cctool/internal/status"
 	"github.com/JerryZhou343/cctool/internal/translate"
 	"github.com/JerryZhou343/cctool/internal/translate/baidu"
-	"github.com/pkg/errors"
-	"os"
+	"github.com/JerryZhou343/cctool/internal/translate/google"
 	"path/filepath"
-	"sort"
 	"time"
 )
 
@@ -32,6 +29,9 @@ func (a *Application) Translate() (err error) {
 	case flags.TransTool_Baidu:
 		a.translator = baidu.NewTranslator(&conf.G_Config.Baidu)
 		a.interval = time.Millisecond * time.Duration(conf.G_Config.Baidu.Interval)
+	case flags.TransTool_Google:
+		a.translator = google.NewTranslator()
+		a.interval = time.Millisecond * time.Duration(conf.G_Config.Google.Interval)
 	default:
 		return status.ErrInitTranslatorFailed
 	}
@@ -64,7 +64,6 @@ func (a *Application) translate(srcPath string, src []*srt.Srt) (err error) {
 	fileName := filepath.Base(absFilePath)
 	dstFile := filepath.Join(absPath, flags.To+"_"+fileName)
 
-
 	ret = make(map[int]string)
 	for _, itr := range src {
 		tmpResult, err = a.translator.Do(itr.Subtitle, flags.From, flags.To)
@@ -81,51 +80,14 @@ func (a *Application) translate(srcPath string, src []*srt.Srt) (err error) {
 				itr.Subtitle = v + "\n" + itr.Subtitle
 			}
 		}
-		a.WriteSrt(dstFile, src)
+		srt.WriteSrt(dstFile, src)
 	} else {
 		for _, itr := range src {
 			if v, ok := ret[itr.Sequence]; ok {
 				itr.Subtitle = v
 			}
 		}
-		a.WriteSrt(dstFile, src)
-	}
-	return
-}
-
-func (a *Application) WriteSrt(filePath string, src []*srt.Srt) (err error) {
-	var (
-		absFilePath string
-		dstFile     *os.File
-	)
-	sort.Sort(srt.SrtSort(src))
-
-	absFilePath, err = filepath.Abs(filePath)
-	if err != nil {
-		err = errors.WithMessage(status.ErrPathError, fmt.Sprintf("%s", filePath))
-		return
-	}
-
-	absPath := filepath.Dir(absFilePath)
-	_, err = os.Stat(absPath)
-	if err != nil {
-		err = os.Mkdir(absPath, os.ModePerm)
-		if err != nil {
-			return errors.WithMessage(status.ErrCreatePathFailed, fmt.Sprintf("路径: %s", absPath))
-		}
-	}
-
-	dstFile, err = os.OpenFile(absFilePath, os.O_CREATE|os.O_RDWR, os.ModePerm)
-	if err != nil {
-		return errors.WithMessage(status.ErrOpenFileFailed, fmt.Sprintf("文件：%s", filePath))
-	}
-	defer dstFile.Close()
-
-	for _, itr := range src {
-		dstFile.WriteString(fmt.Sprintf("%d\r\n", itr.Sequence))
-		dstFile.WriteString(fmt.Sprintf("%s --> %s", itr.Start, itr.End))
-		dstFile.WriteString(itr.Subtitle)
-		dstFile.WriteString("\r\n")
+		srt.WriteSrt(dstFile, src)
 	}
 	return
 }

@@ -11,4 +11,5 @@ var (
 var (
 	TransTool_Baidu   = "baidu"
 	TransTool_Tencent = "tencent"
+	TransTool_Google  = "google"
 )

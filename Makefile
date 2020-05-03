@@ -7,3 +7,7 @@ all: clean
 
 clean:
 	rm -f bin/${OUTPUT}
+
+
+windows:
+	GOOS=windows GOARCH=amd64 go build -o bin/cctool.exe main.go

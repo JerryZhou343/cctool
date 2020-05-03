@@ -3,10 +3,10 @@
 
 
 # 设计
-1. 调用百度api 翻译英文到中文
+1. 调用百度api 翻译英文到中文; 需要注册百度开发者，获得对应的appid和key
 
 ## 使用
-
+```
 ./cctool translate -h
 翻译字幕
 
@@ -20,6 +20,7 @@ Flags:
   -s, --source strings     源文件
   -t, --to string          目标语言 (default "zh")
       --transtool string   翻译器 (default "baidu")
+```
 
 
 ###  使用示例

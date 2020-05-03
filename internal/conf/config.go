@@ -11,15 +11,15 @@ var (
 	G_Config Config
 )
 
-
 type ApiConf struct {
 	AppId     string `yaml:"app_id"`
 	SecretKey string `yaml:"secret_key"`
-	Interval int64 `yaml:"interval"`
+	Interval  int64  `yaml:"interval"`
 }
 
 type Config struct {
-	Baidu ApiConf `yaml:"baidu"`
+	Baidu  ApiConf `yaml:"baidu"`
+	Google ApiConf `yaml:"google"`
 }
 
 func Init() error {
@@ -28,7 +28,7 @@ func Init() error {
 		return status.ErrNotFoundConfig
 	}
 	err = yaml.Unmarshal(f, &G_Config)
-	log.Printf("%s: %+v \n",string(f),err)
-	log.Printf("%+v",G_Config)
+	log.Printf("%s: %+v \n", string(f), err)
+	log.Printf("%+v", G_Config)
 	return err
 }

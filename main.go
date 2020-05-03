@@ -18,8 +18,8 @@ func main() {
 			Run: func(cmd *cobra.Command, args []string) {
 				conf.Init()
 				err := application.Translate()
-				if err != nil{
-					log.Printf("%+v",err)
+				if err != nil {
+					log.Printf("%+v", err)
 				}
 			},
 		}
