@@ -1,6 +1,12 @@
 baidu:
   app_id: xxxxxxxxxxxxxxxxx
   secret_key: xxxxxxxxxxxxxxxxxxxx
-  interval: 100 #毫秒
+  interval: 100 #访问间隔
+
 google:
-  interval: 1000
+  interval: 1000 #访问间隔
+
+tencent:
+  qtv: xxx
+  qtk: xxxx
+  interval: 1000  #访问间隔

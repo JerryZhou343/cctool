@@ -8,6 +8,7 @@ import (
 	"github.com/JerryZhou343/cctool/internal/translate"
 	"github.com/JerryZhou343/cctool/internal/translate/baidu"
 	"github.com/JerryZhou343/cctool/internal/translate/google"
+	"github.com/JerryZhou343/cctool/internal/translate/tencent"
 	"path/filepath"
 	"time"
 )
@@ -32,6 +33,9 @@ func (a *Application) Translate() (err error) {
 	case flags.TransTool_Google:
 		a.translator = google.NewTranslator()
 		a.interval = time.Millisecond * time.Duration(conf.G_Config.Google.Interval)
+	case flags.TransTool_Tencent:
+		a.translator = tencent.NewTranslator(conf.G_Config.Tencent.Qtk, conf.G_Config.Tencent.Qtv)
+		a.interval = time.Millisecond * time.Duration(conf.G_Config.Tencent.Interval)
 	default:
 		return status.ErrInitTranslatorFailed
 	}

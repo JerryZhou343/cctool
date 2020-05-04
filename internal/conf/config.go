@@ -17,9 +17,16 @@ type ApiConf struct {
 	Interval  int64  `yaml:"interval"`
 }
 
+type TencentConf struct {
+	Interval int    `yaml:"interval"`
+	Qtv      string `yaml:"qtv"`
+	Qtk      string `yaml:"qtk"`
+}
+
 type Config struct {
-	Baidu  ApiConf `yaml:"baidu"`
-	Google ApiConf `yaml:"google"`
+	Baidu   ApiConf     `yaml:"baidu"`
+	Google  ApiConf     `yaml:"google"`
+	Tencent TencentConf `yaml:"tencent"`
 }
 
 func Init() error {

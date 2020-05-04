@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/JerryZhou343/cctool/internal/app"
 	"github.com/JerryZhou343/cctool/internal/conf"
 	"github.com/JerryZhou343/cctool/internal/flags"
@@ -28,7 +29,8 @@ func main() {
 	translateCmd.PersistentFlags().StringSliceVarP(&flags.SrcFiles, "source", "s", []string{}, "源文件")
 	translateCmd.PersistentFlags().StringVarP(&flags.From, "from", "f", "en", "源语言")
 	translateCmd.PersistentFlags().StringVarP(&flags.To, "to", "t", "zh", "目标语言")
-	translateCmd.PersistentFlags().StringVarP(&flags.TransTool, "transtool", "", "baidu", "翻译器")
+	translateCmd.PersistentFlags().StringVarP(&flags.TransTool, "transtool", "", "google",
+		fmt.Sprintf("翻译工具: %s,%s,%s", flags.TransTool_Baidu, flags.TransTool_Google, flags.TransTool_Tencent))
 	translateCmd.PersistentFlags().BoolVarP(&flags.Merge, "merge", "m", false, "双语字幕")
 
 	rootCmd.AddCommand(&translateCmd)
