@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/JerryZhou343/cctool/internal/conf"
 	"github.com/JerryZhou343/cctool/internal/flags"
+	"github.com/JerryZhou343/cctool/internal/merge"
 	"github.com/JerryZhou343/cctool/internal/srt"
 	"github.com/JerryZhou343/cctool/internal/status"
 	"github.com/JerryZhou343/cctool/internal/translate"
@@ -94,4 +95,9 @@ func (a *Application) translate(srcPath string, src []*srt.Srt) (err error) {
 		srt.WriteSrt(dstFile, src)
 	}
 	return
+}
+
+func (a *Application) Merge() error {
+	engine := merge.NewMerge()
+	return engine.Merge(flags.MergeStrategy, flags.DstFile, flags.SrcFiles...)
 }
