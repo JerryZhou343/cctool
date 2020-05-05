@@ -131,7 +131,6 @@ func (e *Merge) mix(dstFilePath string) (err error) {
 			}
 		}
 	}
-
 	srt.WriteSrt(dstFilePath, src1Slice)
 	return
 }

@@ -1,3 +1,7 @@
+audio_cache_path:
+
+srt_path:
+
 baidu:
   app_id: xxxxxxxxxxxxxxxxx
   secret_key: xxxxxxxxxxxxxxxxxxxx
@@ -10,3 +14,13 @@ tencent:
   qtv: xxx
   qtk: xxxx
   interval: 1000  #访问间隔
+
+#aliyun:
+#  access_key_id: xxxxxxxxxxxxxxxxxxxxxxxx
+#  accessKey_secret: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#  app_key: xxxxxxxxxxxxxxxx
+#  oss_endpoint: xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#  bucket_name: xxxxxxxxxxxxxxxx
+#  bucket_domain: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+#  interval: 1000
+

@@ -1,13 +1,14 @@
 package flags
 
 var (
-	SrcFiles      []string
-	From          string
-	To            string
-	TransTool     string
-	Merge         bool
-	MergeStrategy string
-	DstFile       string
+	SrcFiles       []string
+	From           string
+	To             string
+	TransTool      string
+	Merge          bool
+	MergeStrategy  string
+	DstFile        string
+	AudioChannelId int
 )
 
 //translate tool

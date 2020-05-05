@@ -15,6 +15,15 @@
 # vendor/
 .idea
 internal/translate/baidu/baidu_test.go
+internal/voice/parse_test.go
+internal/text/google/google_test.go
+internal/text/aliyun/aliyun_test.go
+internal/store/aliyun/oss_test.go
 bin/config.yaml_bak
 bin/cctool
 bin/cctool.exe
+bin/srt
+bin/1.cn.srt
+bin/1.en.srt
+*.mp3
+*.mp4

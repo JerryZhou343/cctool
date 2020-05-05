@@ -22,7 +22,7 @@ func main() {
 					err = status.ErrSourceFileNotEnough
 					return
 				}
-				err = conf.Init()
+				err = conf.Load()
 				if err != nil {
 					err = status.ErrInitConfigFileFailed
 					return
@@ -39,19 +39,44 @@ func main() {
 		mergeCmd = cobra.Command{
 			Use:   "merge",
 			Short: "合并字幕",
-			Run: func(cmd *cobra.Command, args []string) {
+			RunE: func(cmd *cobra.Command, args []string) error {
 				//check
 				if len(flags.SrcFiles) != 2 {
-					return
+					return status.ErrSourceFileNotEnough
 				}
 				if flags.DstFile == "" {
-					return
+					return status.ErrDstFile
 				}
 
 				err := application.Merge()
 				if err != nil {
 					log.Printf("%+v", err)
 				}
+				return nil
+			},
+		}
+
+		generateCmd = cobra.Command{
+			Use:   "generate",
+			Short: "生成字幕",
+			RunE: func(cmd *cobra.Command, args []string) (err error) {
+				if len(flags.SrcFiles) == 0 {
+					err = status.ErrSourceFileNotEnough
+					return
+				}
+				err = conf.Load()
+				if err != nil {
+					err = status.ErrInitConfigFileFailed
+					return
+				}
+
+				for _, itr := range flags.SrcFiles {
+					err = application.GenerateSrt(itr, flags.AudioChannelId)
+					if err != nil {
+						return
+					}
+				}
+				return nil
 			},
 		}
 	)
@@ -67,12 +92,16 @@ func main() {
 	//合并
 	mergeCmd.PersistentFlags().StringSliceVarP(&flags.SrcFiles, "source", "s", []string{}, "源文件")
 	mergeCmd.PersistentFlags().StringVarP(&flags.DstFile, "destination", "d", "", "目标文件")
-	mergeCmd.PersistentFlags().StringVar(&flags.MergeStrategy, "strategy", flags.StrategySequence,
+	mergeCmd.PersistentFlags().StringVar(&flags.MergeStrategy, "strategy", flags.StrategyTimeline,
 		fmt.Sprintf("merge strategy：[%s:以第一个源文件的序号主,%s: 以第一个源文件的时间轴为主]",
 			flags.StrategySequence, flags.StrategyTimeline))
 
+	//生成字幕
+	generateCmd.PersistentFlags().StringSliceVarP(&flags.SrcFiles, "source", "s", []string{}, "源文件")
+	generateCmd.PersistentFlags().IntVarP(&flags.AudioChannelId, "channel", "c", 0, "音频声道")
+
 	rootCmd.AddCommand(&translateCmd)
 	rootCmd.AddCommand(&mergeCmd)
-
+	rootCmd.AddCommand(&generateCmd)
 	rootCmd.Execute()
 }

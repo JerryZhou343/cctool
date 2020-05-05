@@ -4,7 +4,8 @@ import (
 	"github.com/JerryZhou343/cctool/internal/status"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
+	"os"
+	"path/filepath"
 )
 
 var (
@@ -23,19 +24,45 @@ type TencentConf struct {
 	Qtk      string `yaml:"qtk"`
 }
 
-type Config struct {
-	Baidu   ApiConf     `yaml:"baidu"`
-	Google  ApiConf     `yaml:"google"`
-	Tencent TencentConf `yaml:"tencent"`
+type AliYunConf struct {
+	AccessKeyId     string `yaml:"access_key_id"`
+	AccessKeySecret string `yaml:"accessKey_secret"`
+	AppKey          string `yaml:"app_key"`
+	OssEndpoint     string `yaml:"oss_endpoint"`
+	BucketName      string `yaml:"bucket_name"`
+	BucketDomain    string `yaml:"bucket_domain"`
 }
 
-func Init() error {
-	f, err := ioutil.ReadFile("config.yaml")
+type Config struct {
+	Baidu          ApiConf     `yaml:"baidu"`
+	Google         ApiConf     `yaml:"google"`
+	Tencent        TencentConf `yaml:"tencent"`
+	Aliyun         AliYunConf  `yaml:"aliyun"`
+	SampleRate     int
+	AudioCachePath string `yaml:"audio_cache_path"`
+	SrtPath        string `yaml:"srt_path"`
+}
+
+func Load() (err error) {
+	var (
+		f        []byte
+		currPath string
+	)
+	f, err = ioutil.ReadFile("config.yaml")
 	if err != nil {
 		return status.ErrNotFoundConfig
 	}
 	err = yaml.Unmarshal(f, &G_Config)
-	log.Printf("%s: %+v \n", string(f), err)
-	log.Printf("%+v", G_Config)
+	G_Config.SampleRate = 16000
+	currPath, err = os.Getwd()
+	if G_Config.AudioCachePath == "" {
+		G_Config.AudioCachePath = filepath.Join(currPath, "audio")
+	}
+
+	if G_Config.SrtPath == "" {
+		G_Config.SrtPath = filepath.Join(currPath, "srt")
+	}
+	G_Config.AudioCachePath, err = filepath.Abs(G_Config.AudioCachePath)
+	G_Config.SrtPath, err = filepath.Abs(G_Config.SrtPath)
 	return err
 }

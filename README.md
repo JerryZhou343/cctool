@@ -33,6 +33,12 @@ Flags:
       --transtool string   翻译工具: baidu,google,tencent (default "google")
 ```
 
+### 语言参数：
+
+en : 英语
+
+zh : 简体中文
+
 
 ###  使用示例
 ```json

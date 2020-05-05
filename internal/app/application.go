@@ -6,11 +6,20 @@ import (
 	"github.com/JerryZhou343/cctool/internal/merge"
 	"github.com/JerryZhou343/cctool/internal/srt"
 	"github.com/JerryZhou343/cctool/internal/status"
+	"github.com/JerryZhou343/cctool/internal/store/aliyun"
+	"os"
+	"strings"
+
+	aliSpeech "github.com/JerryZhou343/cctool/internal/text/aliyun"
 	"github.com/JerryZhou343/cctool/internal/translate"
 	"github.com/JerryZhou343/cctool/internal/translate/baidu"
 	"github.com/JerryZhou343/cctool/internal/translate/google"
 	"github.com/JerryZhou343/cctool/internal/translate/tencent"
+	"github.com/JerryZhou343/cctool/internal/utils"
+	"github.com/JerryZhou343/cctool/internal/voice"
+	"github.com/pkg/errors"
 	"path/filepath"
+	"strconv"
 	"time"
 )
 
@@ -100,4 +109,51 @@ func (a *Application) translate(srcPath string, src []*srt.Srt) (err error) {
 func (a *Application) Merge() error {
 	engine := merge.NewMerge()
 	return engine.Merge(flags.MergeStrategy, flags.DstFile, flags.SrcFiles...)
+}
+
+func (a *Application) GenerateSrt(video string, channelId int) (err error) {
+	var (
+		uri string
+		ret []*srt.Srt
+		absVideo string
+		objName string
+	)
+	//1. 抽取音频
+	extractor := voice.NewExtractor(strconv.Itoa(conf.G_Config.SampleRate))
+	err = extractor.Valid()
+	if err != nil {
+		return
+	}
+	absVideo, err  = filepath.Abs(video)
+	if err != nil{
+		return errors.Wrapf( status.ErrReadFileFailed,"%s",video)
+	}
+	flag := utils.CheckFileExist(absVideo)
+	if !flag {
+		return errors.Wrapf(status.ErrFileNotExits, "%s", video)
+	}
+	fileName := filepath.Base(absVideo)
+	name := strings.TrimSuffix(fileName, filepath.Ext(fileName))
+	dstAudioFile := filepath.Join(conf.G_Config.AudioCachePath , name + ".mp3")
+	extractor.ExtractAudio(absVideo, dstAudioFile)
+	//2. 存储
+	storage := aliyun.NewAliyunOSS(conf.G_Config.Aliyun.OssEndpoint,
+		conf.G_Config.Aliyun.AccessKeyId, conf.G_Config.Aliyun.AccessKeySecret,
+		conf.G_Config.Aliyun.BucketName, conf.G_Config.Aliyun.BucketDomain)
+	uri,objName, err = storage.UploadFile(dstAudioFile)
+	//3. 识别
+	speech := aliSpeech.NewSpeech(conf.G_Config.Aliyun.AccessKeyId, conf.G_Config.Aliyun.AccessKeySecret,
+		conf.G_Config.Aliyun.AppKey)
+	ret, err = speech.Recognize(uri, channelId)
+	if err != nil {
+		return
+	}
+	//4. 输出
+	srtDstFilePath := filepath.Join(conf.G_Config.SrtPath, name+".srt")
+	srt.WriteSrt(srtDstFilePath, ret)
+
+	//清理文件
+	os.Remove(dstAudioFile)
+	storage.DeleteFile(objName)
+	return nil
 }

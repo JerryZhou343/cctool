@@ -17,4 +17,7 @@ var (
 	ErrSourceFileNotEnough    = errors.New("源文件个数错误")
 	ErrSourceFileMaxSize      = errors.New("源文件个数过多")
 	ErrInitConfigFileFailed   = errors.New("加载配置文件错误")
+	ErrDstFile                = errors.New("目标文件参数未填写")
+	ErrFileNotExits           = errors.New("文件不存在")
+	ErrFFmpegeCheckFailed     = errors.New("ffmpege 依赖检查失败,请安装")
 )
