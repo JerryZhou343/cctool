@@ -46,6 +46,13 @@ func (a *Application) Run() {
 	go a.translate()
 }
 
+func (a *Application)LoadTranslateTools(){
+	conf.Load()
+	for _, itr := range conf.G_Config.TransTools{
+
+	}
+}
+
 func (a *Application) AddTranslateTask(task *TranslateTask) (err error) {
 	a.translateTaskChan <- task
 	return nil

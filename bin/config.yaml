@@ -1,6 +1,12 @@
+# 音频文件目录
 audio_cache_path:
-
+# srt 文件目录
 srt_path:
+
+translate_tools:
+  - baidu
+  - google
+  - tencent
 
 baidu:
   app_id: xxxxxxxxxxxxxxxxx
