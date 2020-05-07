@@ -14,7 +14,7 @@ const KEY_APP_KEY string = "appkey"
 const KEY_FILE_LINK string = "file_link"
 const KEY_VERSION string = "version"
 const KEY_ENABLE_WORDS string = "enable_words"
-const KEY_MAX_SINGLE_SEGMENT_TIME  = "max_single_segment_time"
+const KEY_MAX_SINGLE_SEGMENT_TIME = "max_single_segment_time"
 const KEY_ENABLE_UNIFY_POST = "enable_unify_post"
 const KEY_ENABLE_DISFLUENCY = "enable_disfluency"
 

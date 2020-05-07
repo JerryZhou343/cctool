@@ -50,7 +50,7 @@ func (a *AliyunOSS) GetListBuckets() (ret []string, err error) {
 	return
 }
 
-func (a *AliyunOSS) UploadFile(srcFilePath string) (uri string,objName string, err error) {
+func (a *AliyunOSS) UploadFile(srcFilePath string) (uri string, objName string, err error) {
 	var (
 		client *oss.Client
 		bucket *oss.Bucket
@@ -81,7 +81,7 @@ func (a *AliyunOSS) UploadFile(srcFilePath string) (uri string,objName string, e
 		return
 	}
 
-	return a.GetObjectFileUrl(objName),objName,nil
+	return a.GetObjectFileUrl(objName), objName, nil
 }
 
 func (a *AliyunOSS) DeleteFile(uri string) error {

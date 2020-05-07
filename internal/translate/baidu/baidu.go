@@ -3,7 +3,6 @@ package baidu
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/JerryZhou343/cctool/internal/conf"
 	"github.com/JerryZhou343/cctool/internal/status"
 	"github.com/JerryZhou343/cctool/internal/translate"
 	"github.com/JerryZhou343/cctool/internal/utils"
@@ -19,12 +18,14 @@ import (
 //https://api.fanyi.baidu.com/doc/21
 
 type Translator struct {
-	cfg *conf.ApiConf
+	AppId     string
+	SecretKey string
 }
 
-func NewTranslator(cfg *conf.ApiConf) translate.Translate {
+func NewTranslator(appId, secretKey string) translate.Translate {
 	ret := &Translator{
-		cfg: cfg,
+		AppId:     appId,
+		SecretKey: secretKey,
 	}
 	return ret
 }
@@ -37,7 +38,7 @@ func (t *Translator) Do(src, from, to string) (dst string, err error) {
 	params = &url.Values{}
 	salt := t.genSalt()
 	params.Add("q", src)
-	params.Add("appid", t.cfg.AppId)
+	params.Add("appid", t.AppId)
 	params.Add("salt", salt)
 	params.Add("from", from)
 	params.Add("to", to)
@@ -59,7 +60,7 @@ func (t *Translator) Do(src, from, to string) (dst string, err error) {
 }
 
 func (t *Translator) genSign(src string, salt string) string {
-	raw := t.cfg.AppId + src + salt + t.cfg.SecretKey
+	raw := t.AppId + src + salt + t.SecretKey
 	return utils.Md5String(raw)
 }
 

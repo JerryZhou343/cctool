@@ -18,10 +18,30 @@ type ApiConf struct {
 	Interval  int64  `yaml:"interval"`
 }
 
+func (a *ApiConf) Check() bool {
+	if a.AppId == "" || a.SecretKey == "" {
+		return false
+	}
+	if a.Interval == 0 {
+		a.Interval = 1000
+	}
+	return true
+}
+
 type TencentConf struct {
 	Interval int    `yaml:"interval"`
 	Qtv      string `yaml:"qtv"`
 	Qtk      string `yaml:"qtk"`
+}
+
+func (t *TencentConf) Check() bool {
+	if t.Qtk == "" || t.Qtv == "" {
+		return false
+	}
+	if t.Interval == 0 {
+		t.Interval = 1000
+	}
+	return true
 }
 
 type AliYunConf struct {
@@ -31,6 +51,18 @@ type AliYunConf struct {
 	OssEndpoint     string `yaml:"oss_endpoint"`
 	BucketName      string `yaml:"bucket_name"`
 	BucketDomain    string `yaml:"bucket_domain"`
+}
+
+func (a *AliYunConf) Check() bool {
+	if a.AccessKeyId == "" ||
+		a.AccessKeySecret == "" ||
+		a.AppKey == "" ||
+		a.OssEndpoint == "" ||
+		a.BucketDomain == "" ||
+		a.BucketName == "" {
+		return false
+	}
+	return true
 }
 
 type Config struct {
