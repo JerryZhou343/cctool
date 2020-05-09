@@ -6,7 +6,6 @@ import (
 	gt "github.com/kyai/google-translate-tk"
 	"github.com/pkg/errors"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -93,6 +92,6 @@ func (t *Translator) call(params *url.Values) (ret *response, err error) {
 	json.Unmarshal(content, &arr)
 	ret = new(response)
 	ret.Dst = string(arr[0].([]interface{})[0].([]interface{})[0].(string))
-	log.Printf("dst: %+v", ret.Dst)
+	//log.Printf("dst: %+v", ret.Dst)
 	return
 }

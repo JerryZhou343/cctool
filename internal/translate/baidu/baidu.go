@@ -8,7 +8,6 @@ import (
 	"github.com/JerryZhou343/cctool/internal/utils"
 	"github.com/pkg/errors"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -92,7 +91,7 @@ func (t *Translator) call(params *url.Values) (ret *response, err error) {
 	if err != nil {
 		return
 	}
-	log.Printf("%+v", string(content))
+	//log.Printf("%+v", string(content))
 	ret = &response{}
 	json.Unmarshal(content, ret)
 

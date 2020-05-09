@@ -8,12 +8,21 @@ import (
 	"github.com/JerryZhou343/cctool/internal/status"
 	"github.com/spf13/cobra"
 	"log"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
 )
 
 func main() {
 	var (
-		application  = app.NewApplication()
-		rootCmd      = cobra.Command{}
+		application = app.NewApplication()
+		rootCmd     = cobra.Command{
+			Args: cobra.NoArgs,
+			Run: func(cmd *cobra.Command, args []string) {
+				return
+			},
+		}
 		translateCmd = cobra.Command{
 			Use:   "translate",
 			Short: "翻译字幕",
@@ -22,16 +31,20 @@ func main() {
 					err = status.ErrSourceFileNotEnough
 					return
 				}
-				err = conf.Load()
-				if err != nil {
-					err = status.ErrInitConfigFileFailed
-					return
-				}
-				err = application.Translate()
+				err = application.LoadTranslateTools()
 				if err != nil {
 					log.Printf("%+v", err)
 				}
 
+				application.Run()
+				fmt.Println("s1")
+				for _, itr := range flags.SrcFiles {
+					task := app.NewTranslateTask(itr, flags.From, flags.To, flags.Merge)
+					application.AddTranslateTask(task)
+				}
+
+				Console(application)
+				application.Destroy()
 				return nil
 			},
 		}
@@ -104,4 +117,28 @@ func main() {
 	rootCmd.AddCommand(&mergeCmd)
 	rootCmd.AddCommand(&generateCmd)
 	rootCmd.Execute()
+
+}
+
+func Show(application *app.Application) {
+	for {
+		fmt.Printf("%s\n", strings.Trim(application.GetRunningMsg(),"\n"))
+	}
+}
+
+func Console(application *app.Application) {
+	go Show(application)
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
+	for {
+		s := <-c
+		switch s {
+		case syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT:
+			return
+		case syscall.SIGHUP:
+		default:
+			return
+		}
+	}
 }

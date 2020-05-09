@@ -2,20 +2,23 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"github.com/JerryZhou343/cctool/internal/conf"
 	"github.com/JerryZhou343/cctool/internal/flags"
 	"github.com/JerryZhou343/cctool/internal/merge"
 	"github.com/JerryZhou343/cctool/internal/srt"
 	"github.com/JerryZhou343/cctool/internal/status"
 	"github.com/JerryZhou343/cctool/internal/store/aliyun"
+	"github.com/JerryZhou343/cctool/internal/translate/baidu"
+	"github.com/JerryZhou343/cctool/internal/translate/google"
+	"github.com/JerryZhou343/cctool/internal/translate/tencent"
 	"os"
 	"strings"
+	"sync"
 
 	aliSpeech "github.com/JerryZhou343/cctool/internal/text/aliyun"
-	"github.com/JerryZhou343/cctool/internal/translate"
 	"github.com/JerryZhou343/cctool/internal/utils"
 	"github.com/JerryZhou343/cctool/internal/voice"
-	"github.com/panjf2000/ants/v2"
 	"github.com/pkg/errors"
 	"path/filepath"
 	"strconv"
@@ -23,42 +26,144 @@ import (
 )
 
 type Application struct {
-	translatorSet     map[string]translate.Translate
-	interval          time.Duration
+	//所有的翻译工具
+	translatorSet map[string]*Translator
+	//空闲中的工具
+	idleTranslator map[string]struct{}
+	//待清理工具
+	cleanTranslator map[string]struct{}
+	translatorLock  *sync.Mutex
+
 	translateTaskChan chan *TranslateTask
 	ctx               context.Context
+	cancelFunc        context.CancelFunc
+	msgChan           chan string
 }
 
 func NewApplication() *Application {
 	ret := &Application{
-		translatorSet:     map[string]translate.Translate{},
+		translatorSet:     map[string]*Translator{},
+		idleTranslator: map[string]struct{}{},
+		cleanTranslator:map[string]struct{}{},
 		translateTaskChan: make(chan *TranslateTask, 1000),
-	}
+		translatorLock:    new(sync.Mutex),
 
+		msgChan:           make(chan string, 1000),
+	}
+	ret.ctx, ret.cancelFunc = context.WithCancel(context.Background())
 	return ret
 }
 
 func (a *Application) Destroy() {
-	ants.Release()
+	a.cancelFunc()
 }
 
 func (a *Application) Run() {
 	go a.translate()
 }
 
-func (a *Application)LoadTranslateTools(){
-	conf.Load()
-	for _, itr := range conf.G_Config.TransTools{
+func (a *Application) GetRunningMsg() string {
+	msg := <-a.msgChan
+	return msg
+}
 
+func (a *Application) LoadTranslateTools() (err error) {
+	err = conf.Load()
+	if err != nil {
+		return
 	}
+
+	a.translatorLock.Lock()
+	defer a.translatorLock.Unlock()
+
+	for _, itr := range conf.G_Config.TransTools {
+		a.cleanTranslator[itr] = struct{}{}
+	}
+
+	for _, itr := range conf.G_Config.TransTools {
+		if _, ok := a.translatorSet[itr]; !ok {
+			switch itr {
+			case "google":
+				a.translatorSet[itr] = NewTranslator(itr, google.NewTranslator(),
+					time.Duration(conf.G_Config.Google.Interval)*time.Millisecond)
+			case "baidu":
+				if conf.G_Config.Baidu.Check() {
+					a.translatorSet[itr] = NewTranslator(itr,
+						baidu.NewTranslator(conf.G_Config.Baidu.AppId, conf.G_Config.Baidu.SecretKey),
+						time.Duration(conf.G_Config.Baidu.Interval)*time.Millisecond)
+				}
+			case "tencent":
+				if conf.G_Config.Tencent.Check() {
+					a.translatorSet[itr] = NewTranslator(itr,
+						tencent.NewTranslator(conf.G_Config.Tencent.Qtk, conf.G_Config.Tencent.Qtv),
+						time.Duration(conf.G_Config.Tencent.Interval)*time.Millisecond)
+				}
+			}
+			a.idleTranslator[itr] = struct{}{}
+		}
+		// 不需要清理
+		if _, ok := a.cleanTranslator[itr]; ok {
+			delete(a.cleanTranslator, itr)
+		}
+	}
+
+	return nil
+
 }
 
 func (a *Application) AddTranslateTask(task *TranslateTask) (err error) {
 	a.translateTaskChan <- task
+	a.msgChan <- fmt.Sprintf("添加任务成功 %s",task)
 	return nil
 }
 
 func (a *Application) translate() {
+	for {
+		select {
+		case task := <-a.translateTaskChan:
+			func() {
+				for {
+					a.translatorLock.Lock()
+					//寻找一个空闲的translator 执行翻译任务
+					if len(a.idleTranslator) > 0 {
+						for k, _ := range a.idleTranslator {
+							if v, ok := a.translatorSet[k]; ok {
+								if !v.Running {
+									v.Start()
+									go v.Do(a.ctx, task, a.msgChan, a.translateTaskDone)
+									delete(a.idleTranslator,k)
+								}
+
+								break
+							}
+						}
+						a.translatorLock.Unlock()
+						break
+					} else {
+						a.translatorLock.Unlock()
+						time.Sleep(1 * time.Second)
+					}
+
+				}
+			}()
+
+		case <-a.ctx.Done():
+			return
+		}
+	}
+}
+
+//翻译任务做完后回调
+func (a *Application) translateTaskDone(translator *Translator) {
+	a.translatorLock.Lock()
+	defer a.translatorLock.Unlock()
+	translator.Done()
+	if _, ok := a.cleanTranslator[translator.Name]; ok {
+		delete(a.translatorSet, translator.Name)
+		delete(a.cleanTranslator, translator.Name)
+	} else {
+		a.idleTranslator[translator.Name] = struct{}{}
+	}
 
 }
 

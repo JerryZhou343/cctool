@@ -8,7 +8,6 @@ import (
 	"github.com/JerryZhou343/cctool/internal/utils"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
-	"log"
 	"time"
 )
 
@@ -118,7 +117,7 @@ func (s *Speech) Recognize(fileUri string, channelId int) (ret []*srt.Srt, err e
 							End:      utils.MillisDurationConv(itr.EndTime),
 							Subtitle: itr.Text,
 						}
-						log.Printf("%+v\n", tmpSrt)
+						//log.Printf("%+v\n", tmpSrt)
 						ret = append(ret, tmpSrt)
 					}
 				}

@@ -73,7 +73,7 @@ type Config struct {
 	SampleRate     int
 	AudioCachePath string   `yaml:"audio_cache_path"`
 	SrtPath        string   `yaml:"srt_path"`
-	TransTools     []string `yaml:"translate_tool"`
+	TransTools     []string `yaml:"translate_tools"`
 }
 
 func Load() (err error) {

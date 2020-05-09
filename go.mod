@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	cloud.google.com/go v0.38.0
-	code.266.com/cms-admin/sync v0.0.0-20200507090803-4c8b8932671a // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.170
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.0+incompatible
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
