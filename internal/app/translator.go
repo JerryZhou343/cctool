@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/JerryZhou343/cctool/internal/srt"
 	"github.com/JerryZhou343/cctool/internal/translate"
+	"strings"
 	"time"
 )
 
@@ -65,7 +66,8 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan strin
 					return
 				}
 				time.Sleep(t.interval)
-				subtitle, err = t.tool.Do(itr.Subtitle, task.From, task.To)
+				tmp := strings.ReplaceAll(strings.ReplaceAll(itr.Subtitle,"\r\n"," "),"\n"," ")
+				subtitle, err = t.tool.Do(tmp, task.From, task.To)
 				if err != nil {
 					task.State = TaskStateFailed
 					tryTimes--
