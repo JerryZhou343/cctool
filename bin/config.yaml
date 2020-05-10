@@ -4,9 +4,9 @@ audio_cache_path:
 srt_path:
 
 translate_tools:
-  - baidu
+  #- baidu
   - google
-  - tencent
+  #- tencent
 
 baidu:
   app_id: xxxxxxxxxxxxxxxxx

@@ -57,7 +57,7 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan strin
 		select {
 		default:
 			for {
-				if tryTimes == 0{
+				if tryTimes == 0 {
 					return
 				}
 				time.Sleep(t.interval)
@@ -65,11 +65,12 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan strin
 				if err != nil {
 					task.State = TaskStateFailed
 					tryTimes--
-					msg <- fmt.Sprintf("translator: %s,task: %s err:%+v",t.Name, task, err)
+					msg <- fmt.Sprintf("task: %s err:%+v", task, err)
 				} else {
-					msg <- fmt.Sprintf("translator: %s,task: %s ",t.Name, task)
 					subtitleSet[itr.Sequence] = subtitle
-					task.Progress = float32(idx) / float32(total)
+					task.Progress = float32(idx+1) / float32(total)
+					task.State = TaskStateDoing
+					msg <- fmt.Sprintf("task: %s ", task)
 					break
 				}
 			}
@@ -84,14 +85,14 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan strin
 	//3.1 计算目标文件名
 	absFilePath, err = filepath.Abs(task.SrcFile)
 	if err != nil {
-		msg <- fmt.Sprintf("translator: %s,task: %s err:%+v",t.Name, task, err)
+		msg <- fmt.Sprintf("task: %s err:%+v", task, err)
 		return
 	}
 	absPath := filepath.Dir(absFilePath)
 	fileName := filepath.Base(absFilePath)
 	ext := filepath.Ext(fileName)
 	name := strings.Trim(fileName, ext)
-	dstFile := filepath.Join(absPath, fmt.Sprintf("%s_%s.%s", name, task.To, ext))
+	dstFile := filepath.Join(absPath, fmt.Sprintf("%s_%s%s", name, task.To, ext))
 
 	//3.2 内容合并
 	for _, itr := range src {
@@ -106,10 +107,10 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan strin
 
 	err = srt.WriteSrt(dstFile, src)
 	if err != nil {
-		msg <- fmt.Sprintf("translator: %s,task: %s err:%+v",t.Name, task, err)
+		msg <- fmt.Sprintf("task: %s err:%+v", task, err)
 		return
 	}
 
 	task.State = TaskStateDone
-	msg <- fmt.Sprintf("translator: %s,task: %s ",t.Name, task)
+	msg <- fmt.Sprintf("task: %s ", task)
 }

@@ -122,7 +122,7 @@ func main() {
 
 func Show(application *app.Application) {
 	for {
-		fmt.Printf("%s\n", strings.Trim(application.GetRunningMsg(),"\n"))
+		fmt.Printf("%s\n", strings.Trim(application.GetRunningMsg(), "\n"))
 	}
 }
 

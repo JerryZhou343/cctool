@@ -43,12 +43,12 @@ type Application struct {
 func NewApplication() *Application {
 	ret := &Application{
 		translatorSet:     map[string]*Translator{},
-		idleTranslator: map[string]struct{}{},
-		cleanTranslator:map[string]struct{}{},
+		idleTranslator:    map[string]struct{}{},
+		cleanTranslator:   map[string]struct{}{},
 		translateTaskChan: make(chan *TranslateTask, 1000),
 		translatorLock:    new(sync.Mutex),
 
-		msgChan:           make(chan string, 1000),
+		msgChan: make(chan string, 1000),
 	}
 	ret.ctx, ret.cancelFunc = context.WithCancel(context.Background())
 	return ret
@@ -113,7 +113,7 @@ func (a *Application) LoadTranslateTools() (err error) {
 
 func (a *Application) AddTranslateTask(task *TranslateTask) (err error) {
 	a.translateTaskChan <- task
-	a.msgChan <- fmt.Sprintf("添加任务成功 %s",task)
+	a.msgChan <- fmt.Sprintf("添加任务成功 %s", task)
 	return nil
 }
 
@@ -131,7 +131,7 @@ func (a *Application) translate() {
 								if !v.Running {
 									v.Start()
 									go v.Do(a.ctx, task, a.msgChan, a.translateTaskDone)
-									delete(a.idleTranslator,k)
+									delete(a.idleTranslator, k)
 								}
 
 								break
