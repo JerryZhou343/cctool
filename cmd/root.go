@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
 )
 
 var (
 	RootCmd = cobra.Command{
-		Args:    cobra.NoArgs,
-		Version: fmt.Sprintf("v0.0.0"),
+		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			return
 		},

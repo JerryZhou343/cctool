@@ -28,10 +28,11 @@ var (
 			application.Run()
 			for _, itr := range flags.SrcFiles {
 				task := app.NewTranslateTask(itr, flags.From, flags.To, flags.Merge)
-				application.AddTranslateTask(task)
+				application.AddTask(task)
 			}
 
 			console.Console(application)
+			application.CheckTask()
 			application.Destroy()
 			return nil
 		},

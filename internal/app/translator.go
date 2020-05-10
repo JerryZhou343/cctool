@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"github.com/JerryZhou343/cctool/internal/srt"
 	"github.com/JerryZhou343/cctool/internal/translate"
 	"strings"
@@ -32,7 +31,7 @@ func (t *Translator) Done() {
 	t.Running = false
 }
 
-func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan string, doneCallBack func(*Translator)) {
+func (t *Translator) Do(ctx context.Context, task *TranslateTask, doneCallBack func(*Translator)) {
 	var (
 		err         error
 		src         []*srt.Srt
@@ -43,13 +42,15 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan strin
 	//1.准备数据
 	err = task.Init()
 	if err != nil {
-		msg <- fmt.Sprintf("task: %s err:%+v", task, err)
+		task.Failed(err)
+		return
 	}
 
 	subtitleSet = make(map[int]string)
 	src, err = srt.Open(task.SrcFile)
 	if err != nil {
-		msg <- fmt.Sprintf("task: %s err:%+v", task, err)
+
+		task.Failed(err)
 		return
 	}
 
@@ -63,20 +64,21 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan strin
 		default:
 			for {
 				if tryTimes == 0 {
+					task.State = TaskStateFailed
 					return
 				}
 				time.Sleep(t.interval)
 				tmp := strings.ReplaceAll(strings.ReplaceAll(itr.Subtitle, "\r\n", " "), "\n", " ")
 				subtitle, err = t.tool.Do(tmp, task.From, task.To)
 				if err != nil {
-					task.State = TaskStateFailed
+					task.Failed(err)
+
+					task.State = TaskStateTrying
 					tryTimes--
-					msg <- fmt.Sprintf("task: %s err:%+v", task, err)
 				} else {
 					subtitleSet[itr.Sequence] = subtitle
 					task.Progress = float32(idx+1) / float32(total)
 					task.State = TaskStateDoing
-					msg <- fmt.Sprintf("task: %s ", task)
 					break
 				}
 			}
@@ -88,9 +90,6 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan strin
 	}
 
 	//3.目标文件输出
-	//3.1 计算目标文件名
-
-	//3.2 内容合并
 	for _, itr := range src {
 		if v, ok := subtitleSet[itr.Sequence]; ok {
 			if task.Merge {
@@ -103,10 +102,9 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan strin
 
 	err = srt.WriteSrt(task.DstFile, src)
 	if err != nil {
-		msg <- fmt.Sprintf("task: %s err:%+v", task, err)
+		task.Failed(err)
 		return
 	}
-
 	task.State = TaskStateDone
-	msg <- fmt.Sprintf("task: %s ", task)
+	task.Failed(nil)
 }

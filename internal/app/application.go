@@ -9,7 +9,6 @@ import (
 	"github.com/JerryZhou343/cctool/internal/flags"
 	"github.com/JerryZhou343/cctool/internal/merge"
 	"github.com/JerryZhou343/cctool/internal/srt"
-	"github.com/JerryZhou343/cctool/internal/status"
 	"github.com/JerryZhou343/cctool/internal/store/aliyun"
 	"github.com/JerryZhou343/cctool/internal/translate/baidu"
 	"github.com/JerryZhou343/cctool/internal/translate/google"
@@ -22,7 +21,6 @@ import (
 	aliSpeech "github.com/JerryZhou343/cctool/internal/text/aliyun"
 	"github.com/JerryZhou343/cctool/internal/utils"
 	"github.com/JerryZhou343/cctool/internal/voice"
-	"github.com/pkg/errors"
 	"path/filepath"
 	"strconv"
 	"time"
@@ -34,13 +32,18 @@ type Application struct {
 	//空闲中的工具
 	idleTranslator map[string]struct{}
 	//待清理工具
-	cleanTranslator   map[string]struct{}
-	translatorLock    *sync.Mutex
-	translateTaskChan chan *TranslateTask
-
+	cleanTranslator map[string]struct{}
+	translatorLock  *sync.Mutex
+	//翻译任务
+	translateTaskChan chan Task
 	//转换任务
-	convertTaskChan chan *ConvertTask
+	convertTaskChan chan Task
+	//生成字幕任务
+	generateTaskChan chan Task
 
+	//任务数组
+	taskSlice []Task
+	//
 	ctx        context.Context
 	cancelFunc context.CancelFunc
 	msgChan    chan string
@@ -51,10 +54,12 @@ func NewApplication() *Application {
 		translatorSet:     map[string]*Translator{},
 		idleTranslator:    map[string]struct{}{},
 		cleanTranslator:   map[string]struct{}{},
-		translateTaskChan: make(chan *TranslateTask, 1000),
+		translateTaskChan: make(chan Task, 1000),
 		translatorLock:    new(sync.Mutex),
 
-		convertTaskChan: make(chan *ConvertTask, 100),
+		convertTaskChan: make(chan Task, 100),
+
+		generateTaskChan: make(chan Task, 100),
 
 		msgChan: make(chan string, 1000),
 	}
@@ -70,6 +75,7 @@ func (a *Application) Destroy() {
 func (a *Application) Run() {
 	go a.translate()
 	go a.convert()
+	go a.generate()
 }
 
 func (a *Application) GetRunningMsg() string {
@@ -121,10 +127,47 @@ func (a *Application) LoadTranslateTools() (err error) {
 
 }
 
-func (a *Application) AddTranslateTask(task *TranslateTask) (err error) {
-	a.translateTaskChan <- task
+func (a *Application) AddTask(task Task) (err error) {
+	switch task.Type() {
+	case TaskTypeTranslate:
+		a.translateTaskChan <- task
+	case TaskTypeGenerate:
+		a.generateTaskChan <- task
+	case TaskTypeConvert:
+		a.convertTaskChan <- task
+	}
 	a.msgChan <- fmt.Sprintf("添加任务成功 %s", task)
+	a.taskSlice = append(a.taskSlice, task)
 	return nil
+}
+
+func (a *Application) CheckTask() {
+	var (
+		allDone bool
+	)
+	for {
+		allDone = true
+		select {
+		case <-time.After(2 * time.Second):
+			for _, itr := range a.taskSlice {
+				a.msgChan <- fmt.Sprintf("%s", itr)
+				if itr.GetState() == TaskStateFailed {
+					a.AddTask(itr)
+				}
+				//任务超过最大重试次数就不再尝试
+				if itr.GetState() != TaskStateDone && itr.GetFailedTimes() < 10 {
+					allDone = false
+				}
+			}
+
+			if allDone {
+				return
+			}
+
+		case <-a.ctx.Done():
+			return
+		}
+	}
 }
 
 func (a *Application) translate() {
@@ -140,7 +183,7 @@ func (a *Application) translate() {
 							if v, ok := a.translatorSet[k]; ok {
 								if !v.Running {
 									v.Start()
-									go v.Do(a.ctx, task, a.msgChan, a.translateTaskDone)
+									go v.Do(a.ctx, task.(*TranslateTask), a.translateTaskDone)
 									delete(a.idleTranslator, k)
 								}
 								break
@@ -180,65 +223,116 @@ func (a *Application) Merge() error {
 	return engine.Merge(flags.MergeStrategy, flags.DstFile, flags.SrcFiles...)
 }
 
-func (a *Application) GenerateSrt(video string, channelId int) (err error) {
+func (a *Application) generate() {
+	for {
+		select {
+		case t := <-a.generateTaskChan:
+			a.generateSrt(t.(*GenerateTask))
+		case <-a.ctx.Done():
+			return
+		}
+	}
+}
+
+func (a *Application) generateSrt(task *GenerateTask) {
 	var (
 		uri      string
 		ret      []*srt.Srt
 		absVideo string
 		objName  string
+		err      error
 	)
-	//1. 抽取音频
-	extractor := voice.NewExtractor(strconv.Itoa(conf.G_Config.SampleRate))
-	err = extractor.Valid()
+	//前置检查
+	absVideo, err = filepath.Abs(task.SrcFile)
 	if err != nil {
+		task.State = TaskStateFailed
+		task.Failed(err)
 		return
-	}
-	absVideo, err = filepath.Abs(video)
-	if err != nil {
-		return errors.Wrapf(status.ErrReadFileFailed, "%s", video)
 	}
 	flag := utils.CheckFileExist(absVideo)
 	if !flag {
-		return errors.Wrapf(status.ErrFileNotExits, "%s", video)
+
+		task.Failed(err)
+		task.State = TaskStateFailed
+		return
 	}
+
 	fileName := filepath.Base(absVideo)
 	name := strings.TrimSuffix(fileName, filepath.Ext(fileName))
+	dstAudioFile := filepath.Join(conf.G_Config.AudioCachePath, name+".mp3")
+	srtDstFilePath := filepath.Join(conf.G_Config.SrtPath, name+".srt")
+	task.DstFile = srtDstFilePath
+
+	task.State = TaskStateDoing
+	//1. 抽取音频
+	task.Step = GenerateStepAudio
+	extractor := voice.NewExtractor(strconv.Itoa(conf.G_Config.SampleRate))
+	err = extractor.Valid()
+	if err != nil {
+		task.State = TaskStateFailed
+		return
+	}
 	flag = utils.CheckFileExist(conf.G_Config.AudioCachePath)
 	if !flag {
 		err = os.MkdirAll(conf.G_Config.AudioCachePath, os.ModePerm)
 		if err != nil {
+
+			task.Failed(err)
+			task.State = TaskStateFailed
 			return
 		}
 	}
-	dstAudioFile := filepath.Join(conf.G_Config.AudioCachePath, name+".mp3")
+
+	flag = utils.CheckFileExist(dstAudioFile)
+	if flag {
+		err = os.Remove(dstAudioFile)
+		if err != nil {
+
+			task.Failed(err)
+			task.State = TaskStateFailed
+			return
+		}
+	}
+
 	err = extractor.ExtractAudio(absVideo, dstAudioFile)
 	if err != nil {
+		task.Failed(err)
+		task.State = TaskStateFailed
 		return
 	}
+	defer os.Remove(dstAudioFile)
+
 	//2. 存储
+	task.Step = GenerateStepOss
 	storage := aliyun.NewAliyunOSS(conf.G_Config.Aliyun.OssEndpoint,
 		conf.G_Config.Aliyun.AccessKeyId, conf.G_Config.Aliyun.AccessKeySecret,
 		conf.G_Config.Aliyun.BucketName, conf.G_Config.Aliyun.BucketDomain)
 	uri, objName, err = storage.UploadFile(dstAudioFile)
+	if err != nil {
+		task.Failed(err)
+		task.State = TaskStateFailed
+		return
+	}
+	defer storage.DeleteFile(objName)
+
 	//3. 识别
+	task.Step = GenerateStepRecognize
 	speech := aliSpeech.NewSpeech(conf.G_Config.Aliyun.AccessKeyId, conf.G_Config.Aliyun.AccessKeySecret,
 		conf.G_Config.Aliyun.AppKey)
-	ret, err = speech.Recognize(uri, channelId)
+	ret, err = speech.Recognize(uri, task.ChannelId)
 	if err != nil {
+		task.Failed(err)
+		task.State = TaskStateFailed
 		return
 	}
 	//4. 输出
-	srtDstFilePath := filepath.Join(conf.G_Config.SrtPath, name+".srt")
-	srt.WriteSrt(srtDstFilePath, ret)
-
-	//清理文件
-	os.Remove(dstAudioFile)
-	storage.DeleteFile(objName)
-	return nil
-}
-
-func (a *Application) AddConvertTask(task *ConvertTask) {
-	a.convertTaskChan <- task
+	task.Step = GenerateStepGenerateSrt
+	err = srt.WriteSrt(srtDstFilePath, ret)
+	if err != nil {
+		task.Failed(err)
+		task.State = TaskStateFailed
+	}
+	task.State = TaskStateDone
 	return
 }
 
@@ -246,41 +340,40 @@ func (a *Application) AddConvertTask(task *ConvertTask) {
 func (a *Application) convert() {
 	for {
 		select {
-		case task := <-a.convertTaskChan:
+		case t := <-a.convertTaskChan:
 			_ = ants.Submit(func() {
 				var (
 					err error
 					src *bcc.BCC
 					ret []*srt.Srt
 				)
+				task := t.(*ConvertTask)
 				task.State = TaskStateInit
 				err = task.Init()
 				if err != nil {
 					task.State = TaskStateFailed
-					a.msgChan <- fmt.Sprintf("%s, err %+v", task, err)
+					task.Failed(err)
 					return
 				}
 
 				src, err = bcc.Open(task.SrcFile)
 				if err != nil {
 					task.State = TaskStateFailed
-					a.msgChan <- fmt.Sprintf("%s, err %+v", task, err)
+					task.Failed(err)
 				}
 
 				//doing
 				task.State = TaskStateDoing
-				a.msgChan <- fmt.Sprintf("%s", task)
 				ret = convert.BCC2SRT(src)
 
 				//done
 				err = srt.WriteSrt(task.DstFile, ret)
 				if err != nil {
 					task.State = TaskStateFailed
-					a.msgChan <- fmt.Sprintf("%s, err %+v", task, err)
+					task.Failed(err)
 					return
 				}
 				task.State = TaskStateDone
-				a.msgChan <- fmt.Sprintf("%s", task)
 			})
 		case <-a.ctx.Done():
 			return

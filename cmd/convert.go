@@ -23,10 +23,11 @@ var (
 			application.Run()
 			for _, itr := range flags.SrcFiles {
 				task := app.NewConvertTask(itr, "bcc", "srt")
-				application.AddConvertTask(task)
+				application.AddTask(task)
 			}
 
 			console.Console(application)
+			application.CheckTask()
 			application.Destroy()
 			return nil
 		},

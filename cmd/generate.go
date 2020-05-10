@@ -3,7 +3,9 @@
 package cmd
 
 import (
+	"github.com/JerryZhou343/cctool/internal/app"
 	"github.com/JerryZhou343/cctool/internal/conf"
+	"github.com/JerryZhou343/cctool/internal/console"
 	"github.com/JerryZhou343/cctool/internal/flags"
 	"github.com/JerryZhou343/cctool/internal/status"
 	"github.com/spf13/cobra"
@@ -25,12 +27,15 @@ var (
 				return
 			}
 
+			application.Run()
 			for _, itr := range flags.SrcFiles {
-				err = application.GenerateSrt(itr, flags.AudioChannelId)
-				if err != nil {
-					return
-				}
+				task := app.NewGenerateTask(itr)
+				application.AddTask(task)
 			}
+
+			console.Console(application)
+			application.CheckTask()
+			application.Destroy()
 			return nil
 		},
 	}
