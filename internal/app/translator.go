@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/JerryZhou343/cctool/internal/srt"
 	"github.com/JerryZhou343/cctool/internal/translate"
-	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -37,20 +35,26 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan strin
 	var (
 		err         error
 		src         []*srt.Srt
-		absFilePath string
 		subtitle    string
 		subtitleSet map[int]string
 	)
 	defer doneCallBack(t)
 	//1.准备数据
+	err = task.Init()
+	if err != nil {
+		msg <- fmt.Sprintf("task: %s err:%+v", task, err)
+	}
+
 	subtitleSet = make(map[int]string)
 	src, err = srt.Open(task.SrcFile)
 	if err != nil {
+		msg <- fmt.Sprintf("task: %s err:%+v", task, err)
 		return
 	}
 
 	total := len(src)
 	task.State = TaskStateDoing
+	task.translator = t.Name
 	//2.翻译
 	for idx, itr := range src {
 		tryTimes := 10
@@ -83,16 +87,6 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan strin
 
 	//3.目标文件输出
 	//3.1 计算目标文件名
-	absFilePath, err = filepath.Abs(task.SrcFile)
-	if err != nil {
-		msg <- fmt.Sprintf("task: %s err:%+v", task, err)
-		return
-	}
-	absPath := filepath.Dir(absFilePath)
-	fileName := filepath.Base(absFilePath)
-	ext := filepath.Ext(fileName)
-	name := strings.Trim(fileName, ext)
-	dstFile := filepath.Join(absPath, fmt.Sprintf("%s_%s%s", name, task.To, ext))
 
 	//3.2 内容合并
 	for _, itr := range src {
@@ -105,7 +99,7 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan strin
 		}
 	}
 
-	err = srt.WriteSrt(dstFile, src)
+	err = srt.WriteSrt(task.DstFile, src)
 	if err != nil {
 		msg <- fmt.Sprintf("task: %s err:%+v", task, err)
 		return
