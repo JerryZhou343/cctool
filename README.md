@@ -111,6 +111,7 @@ Flags:
 
 # FAQ:
 Q: 使用腾讯翻译的时候 如果获取qtk， qtv
+
 A: 打开fanyi.qq.com；按F12 调出控制台；选择网络选项卡，清空请求列表；发起一次翻译请求;在网络请求列表中找到translate；选中，点击出现的header选项卡，下拉找到qtv，qtk值
 
 ![示例图](./doc/WechatIMG50.png)
