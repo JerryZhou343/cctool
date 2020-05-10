@@ -3,7 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/JerryZhou343/cctool/internal/bcc"
 	"github.com/JerryZhou343/cctool/internal/conf"
+	"github.com/JerryZhou343/cctool/internal/convert"
 	"github.com/JerryZhou343/cctool/internal/flags"
 	"github.com/JerryZhou343/cctool/internal/merge"
 	"github.com/JerryZhou343/cctool/internal/srt"
@@ -12,6 +14,7 @@ import (
 	"github.com/JerryZhou343/cctool/internal/translate/baidu"
 	"github.com/JerryZhou343/cctool/internal/translate/google"
 	"github.com/JerryZhou343/cctool/internal/translate/tencent"
+	"github.com/panjf2000/ants/v2"
 	"os"
 	"strings"
 	"sync"
@@ -31,13 +34,16 @@ type Application struct {
 	//空闲中的工具
 	idleTranslator map[string]struct{}
 	//待清理工具
-	cleanTranslator map[string]struct{}
-	translatorLock  *sync.Mutex
-
+	cleanTranslator   map[string]struct{}
+	translatorLock    *sync.Mutex
 	translateTaskChan chan *TranslateTask
-	ctx               context.Context
-	cancelFunc        context.CancelFunc
-	msgChan           chan string
+
+	//转换任务
+	convertTaskChan chan *ConvertTask
+
+	ctx        context.Context
+	cancelFunc context.CancelFunc
+	msgChan    chan string
 }
 
 func NewApplication() *Application {
@@ -48,6 +54,8 @@ func NewApplication() *Application {
 		translateTaskChan: make(chan *TranslateTask, 1000),
 		translatorLock:    new(sync.Mutex),
 
+		convertTaskChan: make(chan *ConvertTask, 100),
+
 		msgChan: make(chan string, 1000),
 	}
 	ret.ctx, ret.cancelFunc = context.WithCancel(context.Background())
@@ -56,10 +64,12 @@ func NewApplication() *Application {
 
 func (a *Application) Destroy() {
 	a.cancelFunc()
+	ants.Release()
 }
 
 func (a *Application) Run() {
 	go a.translate()
+	go a.convert()
 }
 
 func (a *Application) GetRunningMsg() string {
@@ -133,7 +143,6 @@ func (a *Application) translate() {
 									go v.Do(a.ctx, task, a.msgChan, a.translateTaskDone)
 									delete(a.idleTranslator, k)
 								}
-
 								break
 							}
 						}
@@ -146,7 +155,6 @@ func (a *Application) translate() {
 
 				}
 			}()
-
 		case <-a.ctx.Done():
 			return
 		}
@@ -227,4 +235,55 @@ func (a *Application) GenerateSrt(video string, channelId int) (err error) {
 	os.Remove(dstAudioFile)
 	storage.DeleteFile(objName)
 	return nil
+}
+
+func (a *Application) AddConvertTask(task *ConvertTask) {
+	a.convertTaskChan <- task
+	return
+}
+
+//字幕格式转换
+func (a *Application) convert() {
+	for {
+		select {
+		case task := <-a.convertTaskChan:
+			_ = ants.Submit(func() {
+				var (
+					err error
+					src *bcc.BCC
+					ret []*srt.Srt
+				)
+				task.State = TaskStateInit
+				err = task.Init()
+				if err != nil {
+					task.State = TaskStateFailed
+					a.msgChan <- fmt.Sprintf("%s, err %+v", task, err)
+					return
+				}
+
+				src, err = bcc.Open(task.SrcFile)
+				if err != nil {
+					task.State = TaskStateFailed
+					a.msgChan <- fmt.Sprintf("%s, err %+v", task, err)
+				}
+
+				//doing
+				task.State = TaskStateDoing
+				a.msgChan <- fmt.Sprintf("%s", task)
+				ret = convert.BCC2SRT(src)
+
+				//done
+				err = srt.WriteSrt(task.DstFile, ret)
+				if err != nil {
+					task.State = TaskStateFailed
+					a.msgChan <- fmt.Sprintf("%s, err %+v", task, err)
+					return
+				}
+				task.State = TaskStateDone
+				a.msgChan <- fmt.Sprintf("%s", task)
+			})
+		case <-a.ctx.Done():
+			return
+		}
+	}
 }

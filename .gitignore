@@ -28,3 +28,4 @@ bin/1.en.srt
 *.mp3
 *.mp4
 bin/*.srt
+bin/*.bcc

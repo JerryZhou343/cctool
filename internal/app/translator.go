@@ -66,7 +66,7 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, msg chan strin
 					return
 				}
 				time.Sleep(t.interval)
-				tmp := strings.ReplaceAll(strings.ReplaceAll(itr.Subtitle,"\r\n"," "),"\n"," ")
+				tmp := strings.ReplaceAll(strings.ReplaceAll(itr.Subtitle, "\r\n", " "), "\n", " ")
 				subtitle, err = t.tool.Do(tmp, task.From, task.To)
 				if err != nil {
 					task.State = TaskStateFailed

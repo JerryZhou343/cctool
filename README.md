@@ -9,28 +9,27 @@
 ### 设计
 调用api 翻译英文到中文; 当前集成一下翻译工具:
 
-1. 百度翻译(需要注册百度开发者，获得对应的appid和key)
+1. 百度翻译(需要注册百度开发者，获得对应的appid和key; 成为高级开发者可以获得每秒10次的并发能力)
 
-2. google 翻译
+2. google 翻译 
 
 3. 腾讯翻译（腾讯翻译需要填qtv 和 qtk 参数，如何获得请看faq）
 
 
 ### 使用
 ```
- ./cctool translate -h
+cctool translate -h
 翻译字幕
 
 Usage:
    translate [flags]
 
 Flags:
-  -f, --from string        源语言 (default "en")
-  -h, --help               help for translate
-  -m, --merge              双语字幕
-  -s, --source strings     源文件
-  -t, --to string          目标语言 (default "zh")
-      --transtool string   翻译工具: baidu,google,tencent (default "google")
+  -f, --from string      源语言 (default "en")
+  -h, --help             help for translate
+  -m, --merge            双语字幕
+  -s, --source strings   源文件
+  -t, --to string        目标语言 (default "zh")
 ```
 
 ### 语言参数：
@@ -41,9 +40,14 @@ zh : 简体中文
 
 
 ###  使用示例
-```json
+```shell script
+# 单个文件
 cctool translate -f en -t zh -m -s e2Engish.srt
+
+# 批量多个文件
+cctool translate -s="1.en.srt,2.en.srt" -f en -t zh -m
 ```
+
 ## 字幕合并
 适用场景，有两个字幕文件文件，需要合并为一个字幕文件方便校对
 ### 策略说明
@@ -52,7 +56,7 @@ cctool translate -f en -t zh -m -s e2Engish.srt
 
 ### 使用
 
-```
+```shell script
 cctool merge -h
 合并字幕
 
@@ -63,7 +67,46 @@ Flags:
   -d, --destination string   目标文件
   -h, --help                 help for merge
   -s, --source strings       源文件
-      --strategy string      merge strategy：[seq:以第一个源文件的序号主,timeline: 以第一个源文件的时间轴为主] (default "seq")
+      --strategy string      merge strategy: [seq:以第一个源文件的序号主,timeline: 以第一个源文件的时间轴为主] (default "seq")
+```
+
+## 字幕转换功能
+当前支持bcc 字幕转换成srt 字幕
+### 使用
+```shell script
+cctool convert -h
+转换字幕;bcc 转 srt
+
+Usage:
+   convert [flags]
+
+Flags:
+  -h, --help             help for convert
+  -s, --source strings   源文件
+
+```
+
+## 语音识别字幕
+
+### 设计
+1. 利用ffmpeg 抽取视频中的音频
+2. 使用阿里云[oss](https://www.aliyun.com/product/oss?spm=5176.12825654.eofdhaal5.13.e9392c4a8rfNXE) 存储抽取的音频
+3. 使用阿里云的[语音识别服务](https://ai.aliyun.com/nls?spm=5176.12825654.eofdhaal5.26.e9392c4a8rfNXE)识别获得结果
+4. 输出srt 字幕
+
+### 使用
+```shell script
+./cctool generate -h
+生成字幕
+
+Usage:
+   generate [flags]
+
+Flags:
+  -c, --channel int      音频声道
+  -h, --help             help for generate
+  -s, --source strings   源文件
+
 ```
 
 # FAQ:
