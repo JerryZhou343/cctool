@@ -79,8 +79,13 @@ func NewTranslateTask(srcFile, from, to string, merge bool) *TranslateTask {
 }
 
 func (t *TranslateTask) String() string {
-	return fmt.Sprintf("[翻译] 工具: %s 源文件: %s 目标文件: %s 进度: %.2f", t.translator, t.SrcFile, t.DstFile, t.Progress*100) +
-		"% " + fmt.Sprintf("状态: %s", t.State)
+	if t.Err == nil {
+		return fmt.Sprintf("[翻译] 工具: %s 源文件: %s 目标文件: %s 进度: %.2f", t.translator, t.SrcFile, t.DstFile, t.Progress*100) +
+			"% " + fmt.Sprintf("状态: %s", t.State)
+	} else {
+		return fmt.Sprintf("[翻译] 工具: %s 源文件: %s 目标文件: %s 进度: %.2f", t.translator, t.SrcFile, t.DstFile, t.Progress*100) +
+			"% " + fmt.Sprintf("状态: %s 错误: %+v", t.State, t.Err)
+	}
 }
 
 func (t *TranslateTask) Type() TaskType {
@@ -138,8 +143,13 @@ func NewConvertTask(srcFile, from, to string) *ConvertTask {
 }
 
 func (c *ConvertTask) String() string {
-	return fmt.Sprintf("[字幕格式转换] From: %s To: %s 源文件: %s 目标文件：%s  状态: %s",
-		c.From, c.To, c.SrcFile, c.DstFile, c.State)
+	if c.Err == nil {
+		return fmt.Sprintf("[字幕格式转换] From: %s To: %s 源文件: %s 目标文件：%s  状态: %s",
+			c.From, c.To, c.SrcFile, c.DstFile, c.State)
+	} else {
+		return fmt.Sprintf("[字幕格式转换] From: %s To: %s 源文件: %s 目标文件：%s  状态: %s 错误: %+v",
+			c.From, c.To, c.SrcFile, c.DstFile, c.State, c.Err)
+	}
 }
 
 func (c *ConvertTask) GetState() TaskState {
@@ -220,8 +230,13 @@ func NewGenerateTask(src string) *GenerateTask {
 }
 
 func (g *GenerateTask) String() string {
-	return fmt.Sprintf("[字幕生成] 源文件: %s 目标文件: %s 步骤: %s 状态: %s",
-		g.SrcFile, g.DstFile, g.Step, g.State)
+	if g.Err == nil {
+		return fmt.Sprintf("[字幕生成] 源文件: %s 目标文件: %s 步骤: %s 状态: %s",
+			g.SrcFile, g.DstFile, g.Step, g.State)
+	} else {
+		return fmt.Sprintf("[字幕生成] 源文件: %s 目标文件: %s 步骤: %s 状态: %s 错误: %+v",
+			g.SrcFile, g.DstFile, g.Step, g.State, g.Err)
+	}
 }
 
 func (g *GenerateTask) Type() TaskType {
