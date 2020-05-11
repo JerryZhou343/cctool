@@ -153,7 +153,7 @@ func (a *Application) CheckTask() {
 				a.msgChan <- fmt.Sprintf("%s", itr)
 
 				//任务超过最大重试次数就不再尝试
-				if itr.GetState() == TaskStateFailed  && itr.GetFailedTimes() < 10{
+				if itr.GetState() == TaskStateFailed && itr.GetFailedTimes() < 10 {
 					a.AddTask(itr)
 				}
 				if itr.GetState() != TaskStateDone && itr.GetFailedTimes() < 10 {

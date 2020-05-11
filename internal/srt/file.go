@@ -52,7 +52,7 @@ func Open(filePath string) (rets []*Srt, err error) {
 			err = errors.WithMessage(status.ErrReadFileFailed, fmt.Sprintf("行号:%d", lineNumber))
 			return
 		}
-		if line == "\n" {
+		if line == "\n" || line == "\r\n" {
 			lineState = StateEnd
 		}
 		switch lineState {
@@ -119,11 +119,11 @@ func WriteSrt(filePath string, src []*Srt) (err error) {
 		if itr.Subtitle == "" || itr.Subtitle == "\r\n" || itr.Subtitle == "\n" {
 			continue
 		}
-		dstFile.WriteString(fmt.Sprintf("%d\r\n", itr.Sequence))
-		dstFile.WriteString(fmt.Sprintf("%s --> %s\r\n", strings.Trim(itr.Start, "\r\n"),
-			strings.Trim(itr.End, "\r\n")))
-		dstFile.WriteString(strings.Trim(itr.Subtitle, "\r\n") + "\r\n")
-		dstFile.WriteString("\r\n")
+		dstFile.WriteString(fmt.Sprintf("%d\n", itr.Sequence))
+		dstFile.WriteString(fmt.Sprintf("%s --> %s\n", itr.Start,
+			strings.Trim(itr.End, "\n")))
+		dstFile.WriteString(strings.Trim(itr.Subtitle, "\n") + "\n")
+		dstFile.WriteString("\n")
 	}
 	return
 }
