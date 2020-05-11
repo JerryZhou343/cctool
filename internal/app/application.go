@@ -151,10 +151,11 @@ func (a *Application) CheckTask() {
 		case <-time.After(2 * time.Second):
 			for _, itr := range a.taskSlice {
 				a.msgChan <- fmt.Sprintf("%s", itr)
-				if itr.GetState() == TaskStateFailed {
+
+				//任务超过最大重试次数就不再尝试
+				if itr.GetState() == TaskStateFailed  && itr.GetFailedTimes() < 10{
 					a.AddTask(itr)
 				}
-				//任务超过最大重试次数就不再尝试
 				if itr.GetState() != TaskStateDone && itr.GetFailedTimes() < 10 {
 					allDone = false
 				}
