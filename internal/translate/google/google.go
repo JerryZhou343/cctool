@@ -89,10 +89,14 @@ func (t *Translator) call(params *url.Values) (ret *response, err error) {
 	if err != nil {
 		return
 	}
+	//fmt.Println(string(content))
 	var arr []interface{}
 	json.Unmarshal(content, &arr)
 	ret = new(response)
-	ret.Dst = string(arr[0].([]interface{})[0].([]interface{})[0].(string))
-	//log.Printf("dst: %+v", ret.Dst)
+	for _, itr := range arr[0].([]interface{}) {
+		if v, ok := itr.([]interface{})[0].(string); ok {
+			ret.Dst += v
+		}
+	}
 	return
 }

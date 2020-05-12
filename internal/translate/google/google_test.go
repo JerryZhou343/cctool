@@ -1,8 +1,15 @@
 package google
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestDo(t *testing.T) {
 	translator := NewTranslator()
-	translator.Do("today I'd like to talk about GO", "en", "zh")
+	ret, err := translator.Do("this is one of best things about teching the course. it's easy to see the principles and ideas in practice.", "en", "zh")
+	if err != nil {
+		t.Errorf("%+v", err)
+	}
+	fmt.Println(ret)
 }
