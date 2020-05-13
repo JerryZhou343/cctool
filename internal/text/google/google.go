@@ -2,44 +2,34 @@ package google
 
 import (
 	sp "cloud.google.com/go/speech/apiv1"
+	speech "cloud.google.com/go/speech/apiv1"
 	"context"
-	"fmt"
-	"github.com/JerryZhou343/cctool/internal/conf"
 	"github.com/JerryZhou343/cctool/internal/srt"
 	"github.com/JerryZhou343/cctool/internal/text"
+	"github.com/JerryZhou343/cctool/internal/utils"
 	"github.com/pkg/errors"
 	"google.golang.org/api/option"
 	speechpb "google.golang.org/genproto/googleapis/cloud/speech/v1"
-	"io/ioutil"
-	"path/filepath"
+	"strings"
 )
 
 type Speech struct {
 	credentialsFile string
+	sampleRate      int32
 }
 
-func NewSpeech(credentialsFile string) text.ISpeech {
+func NewSpeech(credentialsFile string, sampleRate int32) text.ISpeech {
 	return &Speech{
 		credentialsFile: credentialsFile,
+		sampleRate:      sampleRate,
 	}
 }
 
-func (s *Speech) Recognize(srcFile string) (ret []*srt.Srt, err error) {
+func (s *Speech) Recognize(ctx context.Context, fileURI string, channelId int) (ret []*srt.Srt, err error) {
 	var (
-		absFile string
-		content []byte
-		client  *sp.Client
+		client *sp.Client
 	)
 	//准备数据
-	absFile, err = filepath.Abs(srcFile)
-	if err != nil {
-		return
-	}
-	content, err = ioutil.ReadFile(absFile)
-	if err != nil {
-		return
-	}
-
 	client, err = sp.NewClient(context.Background(), option.WithCredentialsFile(s.credentialsFile))
 	if err != nil {
 		err = errors.Wrap(err, "创建google客户端失败")
@@ -48,30 +38,69 @@ func (s *Speech) Recognize(srcFile string) (ret []*srt.Srt, err error) {
 
 	//
 	audio := &speechpb.RecognitionAudio{
-		AudioSource: &speechpb.RecognitionAudio_Content{
-			Content: content,
+		AudioSource: &speechpb.RecognitionAudio_Uri{
+			Uri: fileURI,
 		},
 	}
 
-	req := &speechpb.RecognizeRequest{
+	req := &speechpb.LongRunningRecognizeRequest{
 		Config: &speechpb.RecognitionConfig{
-			Encoding:                            speechpb.RecognitionConfig_SPEEX_WITH_HEADER_BYTE,
-			SampleRateHertz:                     int32(conf.G_Config.SampleRate),
+			Encoding:                            speechpb.RecognitionConfig_ENCODING_UNSPECIFIED,
+			SampleRateHertz:                     s.sampleRate,
 			EnableSeparateRecognitionPerChannel: true,
-			LanguageCode:                        "en",
+			LanguageCode:                        "en-US",
 			SpeechContexts:                      nil, //todo:识别场景
-			EnableWordTimeOffsets:               false,
+			EnableWordTimeOffsets:               true,
 			EnableAutomaticPunctuation:          true,
 		},
 		Audio: audio,
 	}
 	var (
-		rsp *speechpb.RecognizeResponse
+		rsp       *speechpb.LongRunningRecognizeResponse
+		operation *speech.LongRunningRecognizeOperation
 	)
 
-	rsp, err = client.Recognize(context.Background(), req)
-	if err == nil {
-		fmt.Printf("result %d", len(rsp.Results))
+	operation, err = client.LongRunningRecognize(ctx, req)
+	if err != nil {
+		return
 	}
+	rsp, err = operation.Wait(ctx)
+	if err != nil {
+		return
+	}
+	var idx = 0
+	var newLine bool
+	var tmpSrt *srt.Srt
+	newLine = true
+	for _, result := range rsp.Results {
+		for _, itr := range result.Alternatives {
+			for _, word := range itr.Words {
+				//句子结尾
+				if strings.ContainsAny(word.Word, ",.") {
+					tmpSrt.End = utils.DurationConv(word.EndTime)
+					tmpSrt.Subtitle += " " + word.Word
+					newLine = true
+					continue
+				}
+				//新句子开头
+				if newLine == true {
+					idx += 1
+					tmpSrt = &srt.Srt{
+						Sequence: idx,
+						Start:    utils.DurationConv(word.StartTime),
+						End:      "",
+						Subtitle: word.Word,
+					}
+					ret = append(ret, tmpSrt)
+					newLine = false
+				} else { //句子中间
+					tmpSrt.End = utils.DurationConv(word.EndTime)
+					tmpSrt.Subtitle += " " + word.Word
+				}
+			}
+
+		}
+	}
+
 	return
 }

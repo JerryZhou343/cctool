@@ -2,6 +2,7 @@ package aliyun
 
 import (
 	"github.com/JerryZhou343/cctool/internal/status"
+	"github.com/JerryZhou343/cctool/internal/store"
 	"github.com/JerryZhou343/cctool/internal/utils"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"path/filepath"
@@ -18,7 +19,7 @@ type AliyunOSS struct {
 	bucketDomain    string
 }
 
-func NewAliyunOSS(endPoint, accessKeyId, accessKeySecret, bucketName, bucketDomain string) *AliyunOSS {
+func NewAliyunOSS(endPoint, accessKeyId, accessKeySecret, bucketName, bucketDomain string) store.Store {
 	return &AliyunOSS{
 		endpoint:        endPoint,
 		accessKeyId:     accessKeyId,

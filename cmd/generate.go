@@ -4,7 +4,6 @@ package cmd
 
 import (
 	"github.com/JerryZhou343/cctool/internal/app"
-	"github.com/JerryZhou343/cctool/internal/conf"
 	"github.com/JerryZhou343/cctool/internal/console"
 	"github.com/JerryZhou343/cctool/internal/flags"
 	"github.com/JerryZhou343/cctool/internal/status"
@@ -21,9 +20,8 @@ var (
 				err = status.ErrSourceFileNotEnough
 				return
 			}
-			err = conf.Load()
+			err = application.LoadSrtGenerator()
 			if err != nil {
-				err = status.ErrInitConfigFileFailed
 				return
 			}
 

@@ -1,6 +1,7 @@
 package aliyun
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/JerryZhou343/cctool/internal/srt"
@@ -25,7 +26,7 @@ func NewSpeech(accessKeyId, accessKeySecret, appKey string) text.ISpeech {
 	}
 }
 
-func (s *Speech) Recognize(fileUri string, channelId int) (ret []*srt.Srt, err error) {
+func (s *Speech) Recognize(ctx context.Context, fileUri string, channelId int) (ret []*srt.Srt, err error) {
 	client, err := sdk.NewClientWithAccessKey(REGION_ID, s.accessKeyId, s.accessKeySecret)
 	if err != nil {
 		panic(err)
@@ -88,42 +89,47 @@ func (s *Speech) Recognize(fileUri string, channelId int) (ret []*srt.Srt, err e
 	getRequest.QueryParams[KEY_TASK_ID] = taskId
 	statusText = ""
 
-	for true {
-		getResponse, err := client.ProcessCommonRequest(getRequest)
-		if err != nil {
-			return ret, err
-		}
-		//getResponseContent := getResponse.GetHttpContentString()
-		//fmt.Println("识别查询结果：", getResponseContent)
-		if getResponse.GetHttpStatus() != 200 {
-			fmt.Println("识别结果查询请求失败，Http错误码：", getResponse.GetHttpStatus())
-			break
-		}
-		var rsp Response
-		json.Unmarshal(getResponse.GetHttpContentBytes(), &rsp)
-		statusText = rsp.StatusText
-		if statusText == STATUS_RUNNING || statusText == STATUS_QUEUEING {
-			time.Sleep(3 * time.Second)
-			continue
-		} else {
-			if statusText == STATUS_SUCCESS {
-				idx := 0
-				for _, itr := range rsp.Result.Sentences {
-					if itr.ChannelId == channelId {
-						idx += 1
-						tmpSrt := &srt.Srt{
-							Sequence: idx,
-							Start:    utils.MillisDurationConv(itr.BeginTime),
-							End:      utils.MillisDurationConv(itr.EndTime),
-							Subtitle: itr.Text,
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			getResponse, err := client.ProcessCommonRequest(getRequest)
+			if err != nil {
+				return ret, err
+			}
+			//getResponseContent := getResponse.GetHttpContentString()
+			//fmt.Println("识别查询结果：", getResponseContent)
+			if getResponse.GetHttpStatus() != 200 {
+				fmt.Println("识别结果查询请求失败，Http错误码：", getResponse.GetHttpStatus())
+				break
+			}
+			var rsp Response
+			json.Unmarshal(getResponse.GetHttpContentBytes(), &rsp)
+			statusText = rsp.StatusText
+			if statusText == STATUS_RUNNING || statusText == STATUS_QUEUEING {
+				time.Sleep(3 * time.Second)
+				continue
+			} else {
+				if statusText == STATUS_SUCCESS {
+					idx := 0
+					for _, itr := range rsp.Result.Sentences {
+						if itr.ChannelId == channelId {
+							idx += 1
+							tmpSrt := &srt.Srt{
+								Sequence: idx,
+								Start:    utils.MillisDurationConv(itr.BeginTime),
+								End:      utils.MillisDurationConv(itr.EndTime),
+								Subtitle: itr.Text,
+							}
+							ret = append(ret, tmpSrt)
 						}
-						//log.Printf("%+v\n", tmpSrt)
-						ret = append(ret, tmpSrt)
 					}
 				}
+				break
 			}
-			break
 		}
+
 	}
 	return
 }

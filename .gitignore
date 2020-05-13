@@ -19,6 +19,7 @@ internal/voice/parse_test.go
 internal/text/google/google_test.go
 internal/text/aliyun/aliyun_test.go
 internal/store/aliyun/oss_test.go
+internal/store/google/google_test.go
 bin/config.yaml_bak
 bin/cctool
 bin/cctool.exe
@@ -29,3 +30,7 @@ bin/1.en.srt
 *.mp4
 bin/*.srt
 bin/*.bcc
+*_test
+bin/*.json
+*_test
+

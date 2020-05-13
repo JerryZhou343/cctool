@@ -12,6 +12,7 @@ var (
 	G_Config Config
 )
 
+//通用的api 认证配置
 type ApiConf struct {
 	AppId     string `yaml:"app_id"`
 	SecretKey string `yaml:"secret_key"`
@@ -28,6 +29,7 @@ func (a *ApiConf) Check() bool {
 	return true
 }
 
+//腾讯翻译配置
 type TencentConf struct {
 	Interval int    `yaml:"interval"`
 	Qtv      string `yaml:"qtv"`
@@ -44,6 +46,7 @@ func (t *TencentConf) Check() bool {
 	return true
 }
 
+//阿里云配置
 type AliYunConf struct {
 	AccessKeyId     string `yaml:"access_key_id"`
 	AccessKeySecret string `yaml:"accessKey_secret"`
@@ -65,15 +68,36 @@ func (a *AliYunConf) Check() bool {
 	return true
 }
 
+//google服务配置
+type GoogleConf struct {
+	CredentialsFile string `yaml:"credentials_file"`
+	Interval        int    `yaml:"interval"`
+	BucketName      string `yaml:"bucket_name"`
+}
+
+func (g *GoogleConf) Check() bool {
+	if g.Interval == 0 {
+		g.Interval = 1000
+	}
+	if g.CredentialsFile != "" &&
+		g.BucketName != "" {
+		return true
+	}
+
+	return false
+}
+
+//应用程序配置
 type Config struct {
 	Baidu          ApiConf     `yaml:"baidu"`
-	Google         ApiConf     `yaml:"google"`
+	Google         GoogleConf  `yaml:"google"`
 	Tencent        TencentConf `yaml:"tencent"`
 	Aliyun         AliYunConf  `yaml:"aliyun"`
 	SampleRate     int
 	AudioCachePath string   `yaml:"audio_cache_path"`
 	SrtPath        string   `yaml:"srt_path"`
 	TransTools     []string `yaml:"translate_tools"`
+	GenerateTools  []string `yaml:"generate_tools"`
 }
 
 func Load() (err error) {
