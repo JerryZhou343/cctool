@@ -94,8 +94,8 @@ Flags:
 
 ### 设计
 1. 利用ffmpeg 抽取视频中的音频
-2. 使用阿里云[oss](https://www.aliyun.com/product/oss?spm=5176.12825654.eofdhaal5.13.e9392c4a8rfNXE) 存储抽取的音频
-3. 使用阿里云的[语音识别服务](https://ai.aliyun.com/nls?spm=5176.12825654.eofdhaal5.26.e9392c4a8rfNXE)识别获得结果
+2. 使用阿里云[oss](https://www.aliyun.com/product/oss?spm=5176.12825654.eofdhaal5.13.e9392c4a8rfNXE) 或者google store 存储抽取的音频
+3. 使用阿里云的[语音识别服务](https://ai.aliyun.com/nls?spm=5176.12825654.eofdhaal5.26.e9392c4a8rfNXE) 或者google speech识别获得结果
 4. 输出srt 字幕
 
 ### 使用
