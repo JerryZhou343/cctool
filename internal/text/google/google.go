@@ -16,16 +16,17 @@ import (
 type Speech struct {
 	credentialsFile string
 	sampleRate      int32
+	breakSentence   bool
 }
 
-func NewSpeech(credentialsFile string, sampleRate int32) text.ISpeech {
+func NewSpeech(credentialsFile string, sampleRate int32, breakSentence bool) text.ISpeech {
 	return &Speech{
 		credentialsFile: credentialsFile,
 		sampleRate:      sampleRate,
 	}
 }
 
-func (s *Speech) Recognize(ctx context.Context, fileURI string, channelId int) (ret []*srt.Srt, err error) {
+func (s *Speech) Recognize(ctx context.Context, fileURI string) (ret []*srt.Srt, err error) {
 	var (
 		client *sp.Client
 	)
@@ -74,30 +75,39 @@ func (s *Speech) Recognize(ctx context.Context, fileURI string, channelId int) (
 	var tmpSrt *srt.Srt
 	newLine = true
 	for _, result := range rsp.Results {
-		//fmt.Printf("%+v\n", result)
 		for _, itr := range result.Alternatives {
-			for _, word := range itr.Words {
-				//句子结尾
-				if strings.ContainsAny(word.Word, ",.?!") {
-					tmpSrt.End = utils.DurationConv(word.EndTime)
-					tmpSrt.Subtitle += " " + word.Word
-					newLine = true
-					continue
-				}
-				//新句子开头
-				if newLine == true {
-					idx += 1
-					tmpSrt = &srt.Srt{
-						Sequence: idx,
-						Start:    utils.DurationConv(word.StartTime),
-						End:      utils.DurationConv(word.EndTime),
-						Subtitle: word.Word,
+			if s.breakSentence {
+				for _, word := range itr.Words {
+					//句子结尾
+					if strings.ContainsAny(word.Word, ",.?!，。？！") {
+						tmpSrt.End = utils.DurationConv(word.EndTime)
+						tmpSrt.Subtitle += " " + word.Word
+						newLine = true
+						continue
 					}
-					ret = append(ret, tmpSrt)
-					newLine = false
-				} else { //句子中间
-					tmpSrt.End = utils.DurationConv(word.EndTime)
-					tmpSrt.Subtitle += " " + word.Word
+					//新句子开头
+					if newLine == true {
+						idx += 1
+						tmpSrt = &srt.Srt{
+							Sequence: idx,
+							Start:    utils.DurationConv(word.StartTime),
+							End:      utils.DurationConv(word.EndTime),
+							Subtitle: word.Word,
+						}
+						ret = append(ret, tmpSrt)
+						newLine = false
+					} else { //句子中间
+						tmpSrt.End = utils.DurationConv(word.EndTime)
+						tmpSrt.Subtitle += " " + word.Word
+					}
+				}
+			} else {
+				idx += 1
+				tmpSrt = &srt.Srt{
+					Sequence: idx,
+					Start:    utils.DurationConv(itr.Words[0].StartTime),
+					End:      utils.DurationConv(itr.Words[len(itr.Words)-1].EndTime),
+					Subtitle: itr.Transcript,
 				}
 			}
 

@@ -42,5 +42,4 @@ var (
 func init() {
 	//生成字幕
 	generateCmd.PersistentFlags().StringSliceVarP(&flags.SrcFiles, "source", "s", []string{}, "单个或多个源文件")
-	generateCmd.PersistentFlags().IntVarP(&flags.AudioChannelId, "channel", "c", 0, "音频声道")
 }

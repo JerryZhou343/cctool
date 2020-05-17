@@ -165,7 +165,7 @@ func (a *Application) LoadSrtGenerator() (err error) {
 				}
 				a.generatorSet[itr] = NewSrtGenerator(itr,
 					goss.NewGoogleOSS(conf.G_Config.Google.BucketName, conf.G_Config.Google.CredentialsFile),
-					gspeech.NewSpeech(conf.G_Config.Google.CredentialsFile, 0))
+					gspeech.NewSpeech(conf.G_Config.Google.CredentialsFile, conf.G_Config.SampleRate, conf.G_Config.Google.BreakSentence))
 			case "aliyun":
 				if !conf.G_Config.Aliyun.Check() {
 					return errors.Wrapf(status.ErrConfigError, "aliyun")
@@ -175,7 +175,7 @@ func (a *Application) LoadSrtGenerator() (err error) {
 						conf.G_Config.Aliyun.AccessKeyId, conf.G_Config.Aliyun.AccessKeySecret,
 						conf.G_Config.Aliyun.BucketName, conf.G_Config.Aliyun.BucketDomain),
 					aliSpeech.NewSpeech(conf.G_Config.Aliyun.AccessKeyId, conf.G_Config.Aliyun.AccessKeySecret,
-						conf.G_Config.Aliyun.AppKey))
+						conf.G_Config.Aliyun.AppKey, conf.G_Config.Aliyun.BreakSentence))
 			}
 			a.idleGenerator[itr] = struct{}{}
 		}

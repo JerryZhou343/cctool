@@ -9,6 +9,7 @@ import (
 	"github.com/JerryZhou343/cctool/internal/utils"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
+	"strings"
 	"time"
 )
 
@@ -16,17 +17,19 @@ type Speech struct {
 	accessKeyId     string
 	accessKeySecret string
 	appKey          string
+	breakSentence   bool
 }
 
-func NewSpeech(accessKeyId, accessKeySecret, appKey string) text.ISpeech {
+func NewSpeech(accessKeyId, accessKeySecret, appKey string, breakSentence bool) text.ISpeech {
 	return &Speech{
 		accessKeyId:     accessKeyId,
 		accessKeySecret: accessKeySecret,
 		appKey:          appKey,
+		breakSentence:   breakSentence,
 	}
 }
 
-func (s *Speech) Recognize(ctx context.Context, fileUri string, channelId int) (ret []*srt.Srt, err error) {
+func (s *Speech) Recognize(ctx context.Context, fileUri string) (ret []*srt.Srt, err error) {
 	client, err := sdk.NewClientWithAccessKey(REGION_ID, s.accessKeyId, s.accessKeySecret)
 	if err != nil {
 		panic(err)
@@ -44,7 +47,7 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string, channelId int) (
 	// 新接入请使用4.0版本，已接入(默认2.0)如需维持现状，请注释掉该参数设置
 	mapTask[KEY_VERSION] = "4.0"
 	// 设置是否输出词信息，默认为false，开启时需要设置version为4.0
-	mapTask[KEY_ENABLE_WORDS] = "false"
+	mapTask[KEY_ENABLE_WORDS] = "true"
 	mapTask[KEY_MAX_SINGLE_SEGMENT_TIME] = "900"
 	//mapTask[KEY_ENABLE_DISFLUENCY] = "true"
 	//mapTask[KEY_ENABLE_UNIFY_POST] = "true"
@@ -111,10 +114,40 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string, channelId int) (
 				time.Sleep(3 * time.Second)
 				continue
 			} else {
+
+				var idx = 0
+				var newLine bool
+				var tmpSrt *srt.Srt
+				newLine = true
+
 				if statusText == STATUS_SUCCESS {
-					idx := 0
-					for _, itr := range rsp.Result.Sentences {
-						if itr.ChannelId == channelId {
+					if s.breakSentence {
+						for _, word := range rsp.Result.Words {
+							//句子结尾
+							if strings.ContainsAny(word.Word, ",.?!，。？！") {
+								tmpSrt.End = utils.MillisDurationConv(word.EndTime)
+								tmpSrt.Subtitle += " " + word.Word
+								newLine = true
+								continue
+							}
+							//新句子开头
+							if newLine == true {
+								idx += 1
+								tmpSrt = &srt.Srt{
+									Sequence: idx,
+									Start:    utils.MillisDurationConv(word.BeginTime),
+									End:      utils.MillisDurationConv(word.EndTime),
+									Subtitle: word.Word,
+								}
+								ret = append(ret, tmpSrt)
+								newLine = false
+							} else { //句子中间
+								tmpSrt.End = utils.MillisDurationConv(word.EndTime)
+								tmpSrt.Subtitle += " " + word.Word
+							}
+						}
+					} else {
+						for _, itr := range rsp.Result.Sentences {
 							idx += 1
 							tmpSrt := &srt.Srt{
 								Sequence: idx,
@@ -125,6 +158,7 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string, channelId int) (
 							ret = append(ret, tmpSrt)
 						}
 					}
+
 				}
 				break
 			}

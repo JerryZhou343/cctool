@@ -54,6 +54,7 @@ type AliYunConf struct {
 	OssEndpoint     string `yaml:"oss_endpoint"`
 	BucketName      string `yaml:"bucket_name"`
 	BucketDomain    string `yaml:"bucket_domain"`
+	BreakSentence   bool   `yaml:"break_sentence"`
 }
 
 func (a *AliYunConf) Check() bool {
@@ -73,6 +74,7 @@ type GoogleConf struct {
 	CredentialsFile string `yaml:"credentials_file"`
 	Interval        int    `yaml:"interval"`
 	BucketName      string `yaml:"bucket_name"`
+	BreakSentence   bool   `yaml:"break_sentence"`
 }
 
 func (g *GoogleConf) Check() bool {
@@ -93,7 +95,7 @@ type Config struct {
 	Google         GoogleConf  `yaml:"google"`
 	Tencent        TencentConf `yaml:"tencent"`
 	Aliyun         AliYunConf  `yaml:"aliyun"`
-	SampleRate     int
+	SampleRate     int32
 	AudioCachePath string   `yaml:"audio_cache_path"`
 	SrtPath        string   `yaml:"srt_path"`
 	TransTools     []string `yaml:"translate_tools"`

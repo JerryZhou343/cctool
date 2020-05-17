@@ -29,7 +29,7 @@ const STATUS_SUCCESS string = "SUCCESS"
 const STATUS_RUNNING string = "RUNNING"
 const STATUS_QUEUEING string = "QUEUEING"
 
-type Result struct {
+type SentencesResult struct {
 	EndTime         int64  `json:"EndTime"`
 	SilenceDuration int    `json:"SilenceDuration"`
 	BeginTime       int64  `json:"BeginTime"`
@@ -39,16 +39,24 @@ type Result struct {
 	EmotionValue    int    `json:"EmotionValue"`
 }
 
-type SentencesResult struct {
-	Sentences []*Result `json:"Sentences"`
+type WordResult struct {
+	BeginTime int64  `json:"BeginTime"`
+	EndTime   int64  `json:"EndTime"`
+	ChannelId int    `json:"ChannelId"`
+	Word      string `json:"Word"`
+}
+
+type Result struct {
+	Sentences []*SentencesResult `json:"Sentences"`
+	Words     []*WordResult      `json:"Words"`
 }
 
 type Response struct {
-	TaskId      string           `json:"TaskId"`
-	RequestId   string           `json:"RequestId"`
-	StatusText  string           `json:"StatusText"`
-	BizDuration int64            `json:"BizDuration"`
-	SolveTime   int64            `json:"SolveTime"`
-	StatusCode  int32            `json:"StatusCode"`
-	Result      *SentencesResult `json:"Result"`
+	TaskId      string  `json:"TaskId"`
+	RequestId   string  `json:"RequestId"`
+	StatusText  string  `json:"StatusText"`
+	BizDuration int64   `json:"BizDuration"`
+	SolveTime   int64   `json:"SolveTime"`
+	StatusCode  int32   `json:"StatusCode"`
+	Result      *Result `json:"Result"`
 }

@@ -71,7 +71,7 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 	task.State = TaskStateDoing
 	//1. 抽取音频
 	task.Step = GenerateStepAudio
-	extractor := voice.NewExtractor(strconv.Itoa(conf.G_Config.SampleRate), conf.G_Config.FFmpeg)
+	extractor := voice.NewExtractor(strconv.Itoa(int(conf.G_Config.SampleRate)), conf.G_Config.FFmpeg)
 	err = extractor.Valid()
 	if err != nil {
 		task.State = TaskStateFailed
@@ -119,7 +119,7 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 
 	//3. 识别
 	task.Step = GenerateStepRecognize
-	ret, err = s.speech.Recognize(ctx, uri, task.ChannelId)
+	ret, err = s.speech.Recognize(ctx, uri)
 	if err != nil {
 		task.Failed(err)
 		task.State = TaskStateFailed
