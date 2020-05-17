@@ -94,8 +94,8 @@ Flags:
 
 ### 设计
 1. 利用ffmpeg 抽取视频中的音频
-2. 使用阿里云[oss](https://www.aliyun.com/product/oss?spm=5176.12825654.eofdhaal5.13.e9392c4a8rfNXE) 或者google store 存储抽取的音频
-3. 使用阿里云的[语音识别服务](https://ai.aliyun.com/nls?spm=5176.12825654.eofdhaal5.26.e9392c4a8rfNXE) 或者google speech识别获得结果
+2. 使用阿里云[oss](https://www.aliyun.com/product/oss?spm=5176.12825654.eofdhaal5.13.e9392c4a8rfNXE) 或者google [store](https://cloud.google.com/storage?hl=zh-CN) 存储抽取的音频
+3. 使用阿里云的[语音识别服务](https://ai.aliyun.com/nls?spm=5176.12825654.eofdhaal5.26.e9392c4a8rfNXE) 或者google [speech](https://cloud.google.com/speech-to-text?hl=zh-CN)识别获得结果
 4. 输出srt 字幕
 
 ### 使用
@@ -119,3 +119,17 @@ Q: 使用腾讯翻译的时候 如果获取qtk， qtv
 A: 打开fanyi.qq.com；按F12 调出控制台；选择网络选项卡，清空请求列表；发起一次翻译请求;在网络请求列表中找到translate；选中，点击出现的header选项卡，下拉找到qtv，qtk值
 
 ![示例图](./doc/WechatIMG50.png)
+
+
+Q: 没有使用全局代理的情况下如何让cctool 能够访问google
+
+A: 设置环境变量 **https_proxy=http://127.0.0.1:18080** 端口根据使用者自己代理情况设置
+
+
+Q: 阿里云和google 的识别有啥区别
+
+A: 阿里云在识别英语的时候没有标点符号，没有手动断句；google在识别英文的时候有标点，会根据 , . 自动断句；识别制作英文字幕建议google
+
+Q: google.json 是什么文件，怎么获得
+
+A: google.json 是google的认证文件，通过google云的项目控制台下配置获得
