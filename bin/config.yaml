@@ -2,6 +2,8 @@
 audio_cache_path:
 # srt 文件目录
 srt_path:
+# ffmpeg 安装路径
+ffmpeg: xxx
 
 translate_tools:
   #- baidu
