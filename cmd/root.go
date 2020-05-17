@@ -18,4 +18,5 @@ func init() {
 	RootCmd.AddCommand(&mergeCmd)
 	RootCmd.AddCommand(&generateCmd)
 	RootCmd.AddCommand(&convertCmd)
+	RootCmd.AddCommand(&cleanCmd)
 }

@@ -70,7 +70,7 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, doneCallBack f
 				time.Sleep(t.interval)
 				tmp := strings.ReplaceAll(strings.ReplaceAll(itr.Subtitle, "\r\n", " "), "\n", " ")
 				strings.TrimSpace(tmp)
-				if tmp != ""{
+				if tmp != "" {
 					subtitle, err = t.tool.Do(tmp, task.From, task.To)
 				}
 				if err != nil {

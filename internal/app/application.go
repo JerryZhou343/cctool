@@ -19,6 +19,7 @@ import (
 	"github.com/JerryZhou343/cctool/internal/translate/tencent"
 	"github.com/panjf2000/ants/v2"
 	"github.com/pkg/errors"
+	"strings"
 	"sync"
 
 	"time"
@@ -47,6 +48,8 @@ type Application struct {
 	//生成字幕任务
 	generateTaskChan chan Task
 
+	cleanTaskChan chan Task
+
 	//任务数组
 	taskSlice []Task
 	//
@@ -64,6 +67,7 @@ func NewApplication() *Application {
 		translatorLock:    new(sync.Mutex),
 
 		convertTaskChan: make(chan Task, 100),
+		cleanTaskChan:   make(chan Task, 100),
 
 		generatorSet:     map[string]*SrtGenerator{},
 		idleGenerator:    map[string]struct{}{},
@@ -86,6 +90,7 @@ func (a *Application) Run() {
 	go a.translate()
 	go a.convert()
 	go a.generate()
+	go a.clean()
 }
 
 func (a *Application) GetRunningMsg() string {
@@ -190,7 +195,10 @@ func (a *Application) AddTask(task Task) (err error) {
 		a.generateTaskChan <- task
 	case TaskTypeConvert:
 		a.convertTaskChan <- task
+	case TaskTypeClean:
+		a.cleanTaskChan <- task
 	}
+
 	a.msgChan <- fmt.Sprintf("添加任务成功 %s", task)
 	a.taskSlice = append(a.taskSlice, task)
 	return nil
@@ -205,7 +213,7 @@ func (a *Application) CheckTask() {
 		select {
 		case <-time.After(2 * time.Second):
 			for _, itr := range a.taskSlice {
-				a.msgChan <- fmt.Sprintf("时间: %s %s",time.Now().Local().Format("2006-01-02 15:04:05"), itr)
+				a.msgChan <- fmt.Sprintf("时间: %s %s", time.Now().Local().Format("2006-01-02 15:04:05"), itr)
 
 				//任务超过最大重试次数就不再尝试
 				if itr.GetState() == TaskStateFailed && itr.GetFailedTimes() < 10 {
@@ -357,6 +365,64 @@ func (a *Application) convert() {
 				task.State = TaskStateDoing
 				ret = convert.BCC2SRT(src)
 
+				//done
+				err = srt.WriteSrt(task.DstFile, ret)
+				if err != nil {
+					task.State = TaskStateFailed
+					task.Failed(err)
+					return
+				}
+				task.State = TaskStateDone
+			})
+		case <-a.ctx.Done():
+			return
+		}
+	}
+}
+
+func (a *Application) clean() {
+	for {
+		select {
+		case t := <-a.cleanTaskChan:
+			_ = ants.Submit(func() {
+				var (
+					err error
+					ret []*srt.Srt
+					src []*srt.Srt
+				)
+				task := t.(*CleanTask)
+				task.State = TaskStateInit
+				err = task.Init()
+				if err != nil {
+					task.State = TaskStateFailed
+					task.Failed(err)
+					return
+				}
+
+				src, err = srt.Open(task.SrcFile)
+				if err != nil {
+					task.State = TaskStateFailed
+					task.Failed(err)
+					return
+				}
+				//doing
+				task.State = TaskStateDoing
+				newSequence := 0
+				for idx, itr := range src {
+					task.Progress = float32(idx+1) / float32(len(src))
+					if strings.TrimSpace(itr.Subtitle) == "" {
+						continue
+					} else {
+						newSequence += 1
+						ret = append(ret, &srt.Srt{
+							Sequence: newSequence,
+							Start:    itr.Start,
+							End:      itr.End,
+							Subtitle: itr.Subtitle,
+						})
+					}
+
+				}
 				//done
 				err = srt.WriteSrt(task.DstFile, ret)
 				if err != nil {

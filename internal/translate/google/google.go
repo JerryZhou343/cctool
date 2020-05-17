@@ -86,13 +86,13 @@ func (t *Translator) call(params *url.Values) (ret *response, err error) {
 	defer rsp.Body.Close()
 
 	content, err = ioutil.ReadAll(rsp.Body)
-	if err != nil || rsp.StatusCode != http.StatusOK{
+	if err != nil || rsp.StatusCode != http.StatusOK {
 		return
 	}
 	var arr []interface{}
 	json.Unmarshal(content, &arr)
 	ret = new(response)
-	if result, ok := arr[0].([]interface{});ok{
+	if result, ok := arr[0].([]interface{}); ok {
 		for _, itr := range result {
 			if v, ok := itr.([]interface{})[0].(string); ok {
 				ret.Dst += v

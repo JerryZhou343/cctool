@@ -22,6 +22,7 @@ const (
 	TaskTypeGenerate
 	TaskTypeConvert
 	TaskTypeMerge
+	TaskTypeClean
 )
 
 type TaskState int
@@ -116,7 +117,7 @@ func (t *TranslateTask) Init() (err error) {
 	absPath := filepath.Dir(absFilePath)
 	fileName := filepath.Base(absFilePath)
 	ext := filepath.Ext(fileName)
-	name := strings.Trim(fileName, ext)
+	name := strings.TrimRight(fileName, ext)
 	t.DstFile = filepath.Join(absPath, fmt.Sprintf("%s_%s%s", name, t.To, ext))
 	return
 }
@@ -171,7 +172,7 @@ func (c *ConvertTask) Init() (err error) {
 	absPath := filepath.Dir(absFilePath)
 	fileName := filepath.Base(absFilePath)
 	ext := filepath.Ext(fileName)
-	name := strings.Trim(fileName, ext)
+	name := strings.TrimRight(fileName, ext)
 	c.DstFile = filepath.Join(absPath, fmt.Sprintf("%s.%s", name, c.To))
 	return
 }
@@ -253,5 +254,69 @@ func (g *GenerateTask) Failed(err error) {
 }
 
 func (g *GenerateTask) GetFailedTimes() int {
+	return g.FailedTimes
+}
+
+type CleanTask struct {
+	SrcFile     string
+	DstFile     string
+	State       TaskState
+	Err         error
+	Progress    float32
+	FailedTimes int
+}
+
+func NewCleanTask(srcFile string) *CleanTask {
+	return &CleanTask{
+		SrcFile:     srcFile,
+		DstFile:     "",
+		State:       TaskStateInit,
+		Err:         nil,
+		Progress:    0,
+		FailedTimes: 0,
+	}
+}
+
+func (c *CleanTask) Init() (err error) {
+	var (
+		absFilePath string
+	)
+	absFilePath, err = filepath.Abs(c.SrcFile)
+	if err != nil {
+		return
+	}
+	absPath := filepath.Dir(absFilePath)
+	fileName := filepath.Base(absFilePath)
+	ext := filepath.Ext(fileName)
+	name := strings.TrimRight(fileName, ext)
+	c.DstFile = filepath.Join(absPath, fmt.Sprintf("%s_%s%s", name, "clean", ext))
+
+	return
+}
+
+func (t *CleanTask) String() string {
+	if t.Err == nil {
+		return fmt.Sprintf("源文件: %s 目标文件: %s 进度: %.2f", t.SrcFile, t.DstFile, t.Progress*100) +
+			"% " + fmt.Sprintf("状态: %s", t.State)
+	} else {
+		return fmt.Sprintf("源文件: %s 目标文件: %s 进度: %.2f", t.SrcFile, t.DstFile, t.Progress*100) +
+			"% " + fmt.Sprintf("状态: %s 错误: %+v", t.State, t.Err)
+	}
+}
+
+func (t *CleanTask) Type() TaskType {
+	return TaskTypeClean
+}
+
+func (t *CleanTask) GetState() TaskState {
+	return t.State
+}
+
+func (g *CleanTask) Failed(err error) {
+	g.Err = err
+	g.FailedTimes++
+}
+
+func (g *CleanTask) GetFailedTimes() int {
 	return g.FailedTimes
 }
