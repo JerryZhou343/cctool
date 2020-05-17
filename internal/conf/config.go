@@ -98,6 +98,7 @@ type Config struct {
 	SrtPath        string   `yaml:"srt_path"`
 	TransTools     []string `yaml:"translate_tools"`
 	GenerateTools  []string `yaml:"generate_tools"`
+	FFmpeg         string   `yaml:"ffmpeg"`
 }
 
 func Load() (err error) {

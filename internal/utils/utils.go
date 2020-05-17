@@ -88,12 +88,12 @@ func DurationConv(src *duration.Duration) string {
 	d := src.Seconds
 	seconds = d
 	if seconds > 59 {
-		mins = (d / 1000) / 60
+		mins = d / 60
 		seconds = seconds % 60
 	}
 	//分
 	if mins > 59 {
-		hours = (d / 1000) / 3600
+		hours = d / 3600
 		mins = mins % 60
 	}
 

@@ -52,6 +52,7 @@ func (s *Speech) Recognize(ctx context.Context, fileURI string, channelId int) (
 			SpeechContexts:                      nil, //todo:识别场景
 			EnableWordTimeOffsets:               true,
 			EnableAutomaticPunctuation:          true,
+			AudioChannelCount:                   8,
 		},
 		Audio: audio,
 	}
@@ -73,10 +74,11 @@ func (s *Speech) Recognize(ctx context.Context, fileURI string, channelId int) (
 	var tmpSrt *srt.Srt
 	newLine = true
 	for _, result := range rsp.Results {
+		//fmt.Printf("%+v\n", result)
 		for _, itr := range result.Alternatives {
 			for _, word := range itr.Words {
 				//句子结尾
-				if strings.ContainsAny(word.Word, ",.") {
+				if strings.ContainsAny(word.Word, ",.?!") {
 					tmpSrt.End = utils.DurationConv(word.EndTime)
 					tmpSrt.Subtitle += " " + word.Word
 					newLine = true
@@ -88,7 +90,7 @@ func (s *Speech) Recognize(ctx context.Context, fileURI string, channelId int) (
 					tmpSrt = &srt.Srt{
 						Sequence: idx,
 						Start:    utils.DurationConv(word.StartTime),
-						End:      "",
+						End:      utils.DurationConv(word.EndTime),
 						Subtitle: word.Word,
 					}
 					ret = append(ret, tmpSrt)

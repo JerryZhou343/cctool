@@ -3,7 +3,7 @@ audio_cache_path:
 # srt 文件目录
 srt_path:
 # ffmpeg 安装路径
-ffmpeg: xxx
+ffmpeg:
 
 translate_tools:
   #- baidu
@@ -22,7 +22,7 @@ baidu:
 google:
   interval: 1000 #访问间隔
   credentials_file: ./google.json
-  bucket_name: xxxxxxxxxxx
+  bucket_name: guigumentor
 
 
 tencent:

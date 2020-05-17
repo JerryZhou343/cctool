@@ -9,12 +9,18 @@ import (
 
 type Extractor struct {
 	sampleRate string
+	ffmpage    string
 }
 
-func NewExtractor(sampleRate string) *Extractor {
-	return &Extractor{
+func NewExtractor(sampleRate, ffmpeg string) *Extractor {
+	ret := &Extractor{
 		sampleRate: sampleRate,
+		ffmpage:    ffmpeg,
 	}
+	if ffmpeg != "" {
+		ret.AddEnv(ffmpeg)
+	}
+	return ret
 }
 
 func (e *Extractor) ExtractAudio(src string, dst string) (err error) {
