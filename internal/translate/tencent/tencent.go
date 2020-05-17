@@ -73,7 +73,7 @@ func (t *Translator) call(params *url.Values) (ret *response, err error) {
 	}
 	defer rsp.Body.Close()
 	content, err = ioutil.ReadAll(rsp.Body)
-	if err != nil {
+	if err != nil  || rsp.StatusCode != http.StatusOK{
 		return
 	}
 
