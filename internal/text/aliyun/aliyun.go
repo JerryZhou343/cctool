@@ -9,6 +9,7 @@ import (
 	"github.com/JerryZhou343/cctool/internal/utils"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
+	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
 	"strings"
 	"time"
 )
@@ -91,15 +92,15 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (ret []*srt.Srt,
 	getRequest.Method = "GET"
 	getRequest.QueryParams[KEY_TASK_ID] = taskId
 	statusText = ""
-
+	var getResponse *responses.CommonResponse
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
-			getResponse, err := client.ProcessCommonRequest(getRequest)
+			getResponse, err = client.ProcessCommonRequest(getRequest)
 			if err != nil {
-				return ret, err
+				return
 			}
 			//getResponseContent := getResponse.GetHttpContentString()
 			//fmt.Println("识别查询结果：", getResponseContent)
@@ -123,6 +124,9 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (ret []*srt.Srt,
 				if statusText == STATUS_SUCCESS {
 					if s.breakSentence {
 						for _, word := range rsp.Result.Words {
+							if word.ChannelId != 0 {
+								continue
+							}
 							//句子结尾
 							if strings.ContainsAny(word.Word, ",.?!，。？！") {
 								tmpSrt.End = utils.MillisDurationConv(word.EndTime)
@@ -148,6 +152,9 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (ret []*srt.Srt,
 						}
 					} else {
 						for _, itr := range rsp.Result.Sentences {
+							if itr.ChannelId != 0 {
+								continue
+							}
 							idx += 1
 							tmpSrt := &srt.Srt{
 								Sequence: idx,
@@ -160,7 +167,8 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (ret []*srt.Srt,
 					}
 
 				}
-				break
+
+				return
 			}
 		}
 

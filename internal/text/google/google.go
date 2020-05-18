@@ -75,6 +75,9 @@ func (s *Speech) Recognize(ctx context.Context, fileURI string) (ret []*srt.Srt,
 	var tmpSrt *srt.Srt
 	newLine = true
 	for _, result := range rsp.Results {
+		if result.ChannelTag != 1 {
+			continue
+		}
 		for _, itr := range result.Alternatives {
 			if s.breakSentence {
 				for _, word := range itr.Words {
@@ -109,6 +112,7 @@ func (s *Speech) Recognize(ctx context.Context, fileURI string) (ret []*srt.Srt,
 					End:      utils.DurationConv(itr.Words[len(itr.Words)-1].EndTime),
 					Subtitle: itr.Transcript,
 				}
+				ret = append(ret, tmpSrt)
 			}
 
 		}
