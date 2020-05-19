@@ -1,0 +1,5 @@
+package text
+
+const (
+	SentenceBreak = ",.?!，。？！"
+)

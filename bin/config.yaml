@@ -11,8 +11,8 @@ translate_tools:
   #- tencent
 
 generate_tools:
-  #- aliyun
-  - google
+  - aliyun
+  #- google
 
 baidu:
   app_id: xxxxxxxxxxxxxxxxx
@@ -38,4 +38,5 @@ aliyun:
   bucket_name: xxxxxxxxxxxxxxxx
   bucket_domain: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   interval: 1000
+
 
