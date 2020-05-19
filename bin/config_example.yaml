@@ -22,7 +22,7 @@ baidu:
 google:
   interval: 1000 #访问间隔
   credentials_file: ./google.json
-  bucket_name: guigumentor
+  bucket_name: xxxxx
 
 
 tencent:

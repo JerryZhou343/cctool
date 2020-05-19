@@ -11,6 +11,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
 	"github.com/pkg/errors"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -182,7 +183,7 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt) {
 	}
 
 	curIdx := 0
-	for sIdx, itr := range ret {
+	for _, itr := range ret {
 		sentenceWords := strings.Split(itr.Subtitle, " ")
 		for swIdx, sw := range sentenceWords {
 			sword := sw
@@ -203,41 +204,55 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt) {
 					itr.End = utils.MillisDurationConv(rsp.Result.Words[wIdx].EndTime)
 					break
 				} else {
-					fmt.Println(sword, ":", rsp.Result.Words[wIdx].Word, ": wIdx", wIdx, "sIdx", sIdx)
-					fmt.Println("dont't match")
-					return
+					//fmt.Println(sword, ":", rsp.Result.Words[wIdx].Word, ": wIdx", wIdx, "sIdx", sIdx)
+					//fmt.Println("dont't match")
+					continue
+					//return
 				}
 			}
 		}
 	}
-	for _, itr := range ret {
-		fmt.Printf("%+v\n", itr)
-	}
-	return nil
+	return
 }
 
 var (
 	number = map[string]string{
-		"1": "one",
-		"2": "two",
-		"3": "three",
-		"4": "four",
-		"5": "five",
-		"6": "six",
-		"7": "seven",
-		"8": "eight",
-		"9": "nine",
-		"0": "zero",
+		"1":    "one",
+		"2":    "two",
+		"3":    "three",
+		"4":    "four",
+		"5":    "five",
+		"6":    "six",
+		"7":    "seven",
+		"8":    "eight",
+		"9":    "nine",
+		"0":    "zero",
+		"x00":  "hundred",
+		"x000": "thousand",
 	}
 )
 
+//src 为源句子， dst 源为词
 func (s *Speech) equal(src, dst string) bool {
 	src = strings.ToLower(strings.TrimSpace(src))
 	dst = strings.ToLower(strings.TrimSpace(dst))
 	if src == dst {
 		return true
 	}
-	if v, ok := number[src]; ok {
+
+	//todo: 更换策略
+	//if v, ok := number[src]; ok {
+	//	if v == dst {
+	//		return true
+	//	}
+	//}
+	//
+	_, err := strconv.ParseFloat(src, 10)
+	if err == nil {
+		return true
+	}
+
+	for _, v := range number {
 		if v == dst {
 			return true
 		}
