@@ -123,11 +123,9 @@ func (e *Merge) mix(dstFilePath string) (err error) {
 			endSeq = v.Sequence
 		}
 
-		if startSeq != 0 && endSeq != 0 {
-			for _, item := range src2Slice {
-				if item.Sequence >= startSeq && item.Sequence <= endSeq {
-					itr.Subtitle += item.Subtitle
-				}
+		for _, item := range src2Slice {
+			if item.Sequence >= startSeq && item.Sequence <= endSeq {
+				itr.Subtitle += item.Subtitle
 			}
 		}
 	}
