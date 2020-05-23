@@ -11,7 +11,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
 	"github.com/pkg/errors"
-	"strconv"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -182,32 +182,50 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt) {
 		}
 	}
 
+	re, _ := regexp.Compile(regexNumber)
 	curIdx := 0
 	for _, itr := range ret {
 		sentenceWords := strings.Split(itr.Subtitle, " ")
-		for swIdx, sw := range sentenceWords {
+		for swIdx, sw := range sentenceWords { //句子中的词
 			sword := sw
 			if strings.ContainsAny(sw, text.SentenceBreak) {
 				sword = strings.TrimRight(sword, text.SentenceBreak)
 			}
+
+			dst := strings.ToLower(strings.TrimSpace(sword))
+
+			numberFlag := false
 			for wIdx := curIdx; wIdx < len(rsp.Result.Words); wIdx++ {
 				//更新curIdx
-				curIdx = wIdx + 1
 				if rsp.Result.Words[wIdx].ChannelId != channelId {
 					continue
 				}
-				if s.equal(sword, rsp.Result.Words[wIdx].Word) {
-					//fmt.Println(rsp.Result.Words[wIdx].Word)
+
+				src := strings.ToLower(strings.TrimSpace(rsp.Result.Words[wIdx].Word))
+				//当前单词是数字
+				if _, ok := Known[src]; ok && re.Match([]byte(dst)) {
+					numberFlag = true
+					itr.End = utils.MillisDurationConv(rsp.Result.Words[wIdx].EndTime)
+					curIdx = wIdx + 1
+					continue
+				}
+
+				//前面一个词是数字，但是现在这个词不是数字了
+				if _, ok := Known[src]; !ok && numberFlag == true {
+					numberFlag = false
+					break
+				}
+
+				if !numberFlag && src == dst {
 					if swIdx == 0 {
 						itr.Start = utils.MillisDurationConv(rsp.Result.Words[wIdx].BeginTime)
 					}
 					itr.End = utils.MillisDurationConv(rsp.Result.Words[wIdx].EndTime)
+					curIdx = wIdx + 1
 					break
 				} else {
-					//fmt.Println(sword, ":", rsp.Result.Words[wIdx].Word, ": wIdx", wIdx, "sIdx", sIdx)
-					//fmt.Println("dont't match")
-					continue
-					//return
+					fmt.Printf("sequence[%d] don't match dst:[%s] src[%s]\n", itr.Sequence, dst, src)
+					return
 				}
 			}
 		}
@@ -216,47 +234,41 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt) {
 }
 
 var (
-	number = map[string]string{
-		"1":    "one",
-		"2":    "two",
-		"3":    "three",
-		"4":    "four",
-		"5":    "five",
-		"6":    "six",
-		"7":    "seven",
-		"8":    "eight",
-		"9":    "nine",
-		"0":    "zero",
-		"x00":  "hundred",
-		"x000": "thousand",
+	Known = map[string]int{
+		"zero":      0,
+		"one":       1,
+		"two":       2,
+		"three":     3,
+		"four":      4,
+		"five":      5,
+		"six":       6,
+		"seven":     7,
+		"eight":     8,
+		"nine":      9,
+		"ten":       10,
+		"eleven":    11,
+		"twelve":    12,
+		"thirteen":  13,
+		"fourteen":  14,
+		"fifteen":   15,
+		"sixteen":   16,
+		"seventeen": 17,
+		"eighteen":  18,
+		"nineteen":  19,
+		"twenty":    20,
+		"thirty":    30,
+		"forty":     40,
+		"fifty":     50,
+		"sixty":     60,
+		"seventy":   70,
+		"eighty":    80,
+		"ninety":    90,
+		"thousand":  1000,
+		"hundred":   100,
+		"million":   1000000,
 	}
 )
 
-//src 为源句子， dst 源为词
-func (s *Speech) equal(src, dst string) bool {
-	src = strings.ToLower(strings.TrimSpace(src))
-	dst = strings.ToLower(strings.TrimSpace(dst))
-	if src == dst {
-		return true
-	}
-
-	//todo: 更换策略
-	//if v, ok := number[src]; ok {
-	//	if v == dst {
-	//		return true
-	//	}
-	//}
-	//
-	_, err := strconv.ParseFloat(src, 10)
-	if err == nil {
-		return true
-	}
-
-	for _, v := range number {
-		if v == dst {
-			return true
-		}
-	}
-
-	return false
-}
+const (
+	regexNumber = `^[\-0-9][0-9]*(.[0-9]+)?$`
+)
