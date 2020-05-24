@@ -242,6 +242,7 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt, er
 			sword = strings.ToLower(strings.TrimSpace(sword))
 
 			numberFlag := false
+			firstSetFlag := true
 			for wIdx := curIdx; wIdx < len(rsp.Result.Words); wIdx++ {
 				//更新curIdx
 				if rsp.Result.Words[wIdx].ChannelId != channelId {
@@ -252,6 +253,11 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt, er
 				//当前单词是数字,并且句子中的词也是数字
 				if v, ok := WellKnownNumber[word]; ok && re.Match([]byte(sword)) {
 					numberFlag = true
+					//如果首词是数字
+					if swIdx == 0 && firstSetFlag {
+						itr.Start = utils.MillisDurationConv(rsp.Result.Words[wIdx].BeginTime)
+						firstSetFlag = false
+					}
 					itr.End = utils.MillisDurationConv(rsp.Result.Words[wIdx].EndTime)
 					curIdx = wIdx + 1
 					tmpNum, _ := strconv.Atoi(sword)

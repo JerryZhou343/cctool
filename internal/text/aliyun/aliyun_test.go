@@ -18,7 +18,7 @@ const (
 
 func TestSpeech_BreakSentence(t *testing.T) {
 	rsp := &Response{}
-	json.Unmarshal([]byte(result), rsp)
+	json.Unmarshal([]byte(case1), rsp)
 	sp := new(Speech)
 	ret, err := sp.BreakSentence(0, rsp)
 	if err != nil {
