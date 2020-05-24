@@ -21,4 +21,5 @@ var (
 	ErrFileNotExits           = errors.New("文件不存在")
 	ErrFFmpegeCheckFailed     = errors.New("ffmpege 依赖检查失败,请安装")
 	ErrConfigError            = errors.New("配置文件校验不通过")
+	ErrSplitSentenceBug       = errors.New("Spilt Sentence bug")
 )

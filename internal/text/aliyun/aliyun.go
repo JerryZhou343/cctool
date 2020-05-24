@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/JerryZhou343/cctool/internal/srt"
+	"github.com/JerryZhou343/cctool/internal/status"
 	"github.com/JerryZhou343/cctool/internal/text"
 	"github.com/JerryZhou343/cctool/internal/utils"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
@@ -12,8 +13,54 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
 	"github.com/pkg/errors"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
+)
+
+var (
+	WellKnownNumber = map[string]int{
+		"zero":      0,
+		"one":       1,
+		"two":       2,
+		"three":     3,
+		"four":      4,
+		"five":      5,
+		"six":       6,
+		"seven":     7,
+		"eight":     8,
+		"nine":      9,
+		"ten":       10,
+		"eleven":    11,
+		"twelve":    12,
+		"thirteen":  13,
+		"fourteen":  14,
+		"fifteen":   15,
+		"sixteen":   16,
+		"seventeen": 17,
+		"eighteen":  18,
+		"nineteen":  19,
+		"twenty":    20,
+		"thirty":    30,
+		"forty":     40,
+		"fifty":     50,
+		"sixty":     60,
+		"seventy":   70,
+		"eighty":    80,
+		"ninety":    90,
+		"thousand":  1000,
+		"hundred":   100,
+		"million":   1000000,
+		"minus":     -99,
+	}
+
+	WellKnowUnit = map[string]string{
+		"b": "bytes",
+	}
+)
+
+const (
+	regexNumber = `^[\-0-9][0-9]*(.[0-9]+)?$`
 )
 
 type Speech struct {
@@ -54,7 +101,7 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (ret []*srt.Srt,
 		err = errors.New("recognize failed")
 		return
 	}
-	ret = s.BreakSentence(0, rsp)
+	ret, err = s.BreakSentence(0, rsp)
 
 	return
 }
@@ -139,7 +186,7 @@ func (s *Speech) sendTask(client *sdk.Client, URI string) (taskId string, err er
 	return
 }
 
-func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt) {
+func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt, err error) {
 	var (
 		newLine bool
 		idx     int
@@ -192,7 +239,7 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt) {
 				sword = strings.TrimRight(sword, text.SentenceBreak)
 			}
 
-			dst := strings.ToLower(strings.TrimSpace(sword))
+			sword = strings.ToLower(strings.TrimSpace(sword))
 
 			numberFlag := false
 			for wIdx := curIdx; wIdx < len(rsp.Result.Words); wIdx++ {
@@ -201,22 +248,27 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt) {
 					continue
 				}
 
-				src := strings.ToLower(strings.TrimSpace(rsp.Result.Words[wIdx].Word))
-				//当前单词是数字
-				if _, ok := Known[src]; ok && re.Match([]byte(dst)) {
+				word := strings.ToLower(strings.TrimSpace(rsp.Result.Words[wIdx].Word))
+				//当前单词是数字,并且句子中的词也是数字
+				if v, ok := WellKnownNumber[word]; ok && re.Match([]byte(sword)) {
 					numberFlag = true
 					itr.End = utils.MillisDurationConv(rsp.Result.Words[wIdx].EndTime)
 					curIdx = wIdx + 1
+					tmpNum, _ := strconv.Atoi(sword)
+					//如果两个词相等，不再移动单词轴，句子轴和单词轴都移动
+					if v == tmpNum {
+						break
+					}
 					continue
 				}
 
 				//前面一个词是数字，但是现在这个词不是数字了
-				if _, ok := Known[src]; !ok && numberFlag == true {
+				if _, ok := WellKnownNumber[word]; !ok && numberFlag == true {
 					numberFlag = false
 					break
 				}
 
-				if !numberFlag && src == dst {
+				if !numberFlag && s.Equal(sword, word) {
 					if swIdx == 0 {
 						itr.Start = utils.MillisDurationConv(rsp.Result.Words[wIdx].BeginTime)
 					}
@@ -224,7 +276,7 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt) {
 					curIdx = wIdx + 1
 					break
 				} else {
-					fmt.Printf("sequence[%d] don't match dst:[%s] src[%s]\n", itr.Sequence, dst, src)
+					err = errors.WithMessage(status.ErrSplitSentenceBug, fmt.Sprintf("sentence[%s] don't match dst:[%s] src[%s]", itr.Subtitle, sword, word))
 					return
 				}
 			}
@@ -233,42 +285,17 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt) {
 	return
 }
 
-var (
-	Known = map[string]int{
-		"zero":      0,
-		"one":       1,
-		"two":       2,
-		"three":     3,
-		"four":      4,
-		"five":      5,
-		"six":       6,
-		"seven":     7,
-		"eight":     8,
-		"nine":      9,
-		"ten":       10,
-		"eleven":    11,
-		"twelve":    12,
-		"thirteen":  13,
-		"fourteen":  14,
-		"fifteen":   15,
-		"sixteen":   16,
-		"seventeen": 17,
-		"eighteen":  18,
-		"nineteen":  19,
-		"twenty":    20,
-		"thirty":    30,
-		"forty":     40,
-		"fifty":     50,
-		"sixty":     60,
-		"seventy":   70,
-		"eighty":    80,
-		"ninety":    90,
-		"thousand":  1000,
-		"hundred":   100,
-		"million":   1000000,
+//sw 句子中的词， w单词
+func (s *Speech) Equal(sw, w string) bool {
+	if v, ok := WellKnowUnit[sw]; ok {
+		if v == w {
+			return true
+		}
 	}
-)
 
-const (
-	regexNumber = `^[\-0-9][0-9]*(.[0-9]+)?$`
-)
+	if sw == w {
+		return true
+	}
+
+	return false
+}

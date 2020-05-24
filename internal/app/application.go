@@ -216,7 +216,8 @@ func (a *Application) CheckTask() {
 				a.msgChan <- fmt.Sprintf("时间: %s %s", time.Now().Local().Format("2006-01-02 15:04:05"), itr)
 
 				//任务超过最大重试次数就不再尝试
-				if itr.GetState() == TaskStateFailed && itr.GetFailedTimes() < 10 {
+				if itr.GetState() == TaskStateFailed &&
+					itr.GetFailedTimes() < 10 {
 					a.AddTask(itr)
 				}
 				if itr.GetState() != TaskStateDone && itr.GetFailedTimes() < 10 {

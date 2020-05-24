@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+const (
+	MaxRetryTimes = 99
+)
+
 type Task interface {
 	GetState() TaskState
 	String() string

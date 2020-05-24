@@ -4,10 +4,12 @@ import (
 	"context"
 	"github.com/JerryZhou343/cctool/internal/conf"
 	"github.com/JerryZhou343/cctool/internal/srt"
+	"github.com/JerryZhou343/cctool/internal/status"
 	"github.com/JerryZhou343/cctool/internal/store"
 	"github.com/JerryZhou343/cctool/internal/text"
 	"github.com/JerryZhou343/cctool/internal/utils"
 	"github.com/JerryZhou343/cctool/internal/voice"
+	"github.com/pkg/errors"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -120,6 +122,10 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 	//3. 识别
 	task.Step = GenerateStepRecognize
 	ret, err = s.speech.Recognize(ctx, uri)
+	//bug 不再重试
+	if errors.Cause(err) == status.ErrSplitSentenceBug {
+		task.FailedTimes = MaxRetryTimes
+	}
 	if err != nil {
 		task.Failed(err)
 		task.State = TaskStateFailed
