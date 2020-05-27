@@ -36,3 +36,4 @@ bin/*.json
 *_test
 build
 .dart_tool
+.packages
