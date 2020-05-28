@@ -23,7 +23,7 @@ List<Widget> ConstructWidget(Choice choice, TextStyle textStyle){
 
 
 Column buildButtonColumn(IconData icon, String label) {
-  Color color = Theme.of(context).primaryColor;
+  Color color = Color(0xFFFF9000);
 
   return new Column(
     mainAxisSize: MainAxisSize.min,
