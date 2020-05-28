@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cctool/choice.dart';
 import 'package:cctool/factory.dart';
 
-
 class ChoiceCard extends StatelessWidget {
-  const ChoiceCard({ Key key, this.choice }) : super(key: key);
+  const ChoiceCard({Key key, this.choice}) : super(key: key);
 
   final Choice choice;
 

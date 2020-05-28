@@ -1,5 +1,3 @@
-
-
 const Translate = "Translate";
 const Generate = "Generate";
 const Merge = "Merge";

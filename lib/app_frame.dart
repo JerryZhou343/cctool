@@ -1,4 +1,4 @@
-
+import 'package:cctool/factory.dart';
 import 'package:flutter/material.dart';
 import 'package:cctool/const.dart';
 import 'package:cctool/choice.dart';
@@ -44,15 +44,11 @@ class AppFrame extends StatelessWidget {
   }
 }
 
-
-
-
 const List<Choice> choices = <Choice>[
   Choice(title: Translate, icon: Icons.g_translate),
-  Choice(title: Merge, icon:Icons.call_merge),
+  Choice(title: Merge, icon: Icons.call_merge),
   Choice(title: Generate, icon: Icons.android),
   Choice(title: Clear, icon: Icons.clear_all),
   Choice(title: Convert, icon: Icons.autorenew),
-  Choice(title: Setting,icon: Icons.settings_applications),
+  Choice(title: Setting, icon: Icons.settings_applications),
 ];
-
