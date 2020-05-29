@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cctool/choice.dart';
-import 'package:cctool/factory.dart';
+import 'file:///E:/GoPathBase/src/github.com/JerryZhou343/cctool/lib/model/choice.dart';
+import 'file:///E:/GoPathBase/src/github.com/JerryZhou343/cctool/lib/widgets/factory.dart';
 
 class ChoiceCard extends StatelessWidget {
   const ChoiceCard({Key key, this.choice}) : super(key: key);

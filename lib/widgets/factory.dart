@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:cctool/choice.dart';
-import 'package:cctool/const.dart';
+import 'file:///E:/GoPathBase/src/github.com/JerryZhou343/cctool/lib/model/choice.dart';
+import 'file:///E:/GoPathBase/src/github.com/JerryZhou343/cctool/lib/common/const.dart';
 
 List<Widget> ConstructWidget(Choice choice, TextStyle textStyle) {
   if (choice.title != Setting) {
     return <Widget>[
       Icon(choice.icon, size: 128.0, color: textStyle.color),
       Text(choice.title, style: textStyle),
-      Scaffold(floatingActionButton: buildActionButton(choice))
+      Positioned(top:1000,left: 1000,child:buildActionButton(choice))
     ];
   } else {
     return <Widget>[
       Icon(choice.icon, size: 128.0, color: textStyle.color),
       Text(choice.title, style: textStyle),
-      Scaffold(floatingActionButton: buildActionButton(choice))
+      buildActionButton(choice)
     ];
   }
 }
@@ -41,7 +41,7 @@ Column buildButtonColumn(IconData icon, String label) {
   );
 }
 
-FloatingActionButton buildActionButton(Choice choice) {
+Widget buildActionButton(Choice choice) {
   if (choice.title != Setting) {
     return FloatingActionButton(
       onPressed: () {
