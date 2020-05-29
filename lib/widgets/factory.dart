@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'file:///E:/GoPathBase/src/github.com/JerryZhou343/cctool/lib/model/choice.dart';
-import 'file:///E:/GoPathBase/src/github.com/JerryZhou343/cctool/lib/common/const.dart';
+import 'package:cctool/model/choice.dart';
+import 'package:cctool/common/const.dart';
 
 List<Widget> ConstructWidget(Choice choice, TextStyle textStyle) {
   if (choice.title != Setting) {

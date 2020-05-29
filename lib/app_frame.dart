@@ -1,8 +1,8 @@
-import 'file:///E:/GoPathBase/src/github.com/JerryZhou343/cctool/lib/widgets/factory.dart';
+import 'package:cctool/widgets/factory.dart';
 import 'package:flutter/material.dart';
-import 'file:///E:/GoPathBase/src/github.com/JerryZhou343/cctool/lib/common/const.dart';
-import 'file:///E:/GoPathBase/src/github.com/JerryZhou343/cctool/lib/model/choice.dart';
-import 'file:///E:/GoPathBase/src/github.com/JerryZhou343/cctool/lib/widgets/choice_card.dart';
+import 'package:cctool/common/const.dart';
+import 'package:cctool/model/choice.dart';
+import 'package:cctool/widgets/choice_card.dart';
 
 class AppFrame extends StatelessWidget {
   @override
