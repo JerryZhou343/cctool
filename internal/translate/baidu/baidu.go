@@ -91,7 +91,7 @@ func (t *Translator) call(params *url.Values) (ret *response, err error) {
 	if err != nil || rsp.StatusCode != http.StatusOK {
 		return
 	}
-	//log.Printf("%+v", string(content))
+	//logger.Printf("%+v", string(content))
 	ret = &response{}
 	json.Unmarshal(content, ret)
 

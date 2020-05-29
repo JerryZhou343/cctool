@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/JerryZhou343/cctool/internal/srt"
 	"github.com/JerryZhou343/cctool/internal/translate"
+	"github.com/sirupsen/logrus"
 	"strings"
 	"time"
 )
@@ -75,7 +76,7 @@ func (t *Translator) Do(ctx context.Context, task *TranslateTask, doneCallBack f
 				}
 				if err != nil {
 					task.Failed(err)
-
+					logrus.Warnf("%s:%+v", task, err)
 					task.State = TaskStateTrying
 					tryTimes--
 				} else {

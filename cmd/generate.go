@@ -7,6 +7,7 @@ import (
 	"github.com/JerryZhou343/cctool/internal/console"
 	"github.com/JerryZhou343/cctool/internal/flags"
 	"github.com/JerryZhou343/cctool/internal/status"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -22,6 +23,7 @@ var (
 			}
 			err = application.LoadSrtGenerator()
 			if err != nil {
+				logrus.Fatalf("%+v", err)
 				return
 			}
 

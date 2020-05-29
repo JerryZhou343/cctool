@@ -34,4 +34,5 @@ bin/*.bcc
 *_test
 bin/*.json
 *_test
-
+.packages
+bin/log
