@@ -175,7 +175,7 @@ func (a *Application) LoadSrtGenerator() (err error) {
 						conf.G_Config.Aliyun.AccessKeyId, conf.G_Config.Aliyun.AccessKeySecret,
 						conf.G_Config.Aliyun.BucketName, conf.G_Config.Aliyun.BucketDomain),
 					aliSpeech.NewSpeech(conf.G_Config.Aliyun.AccessKeyId, conf.G_Config.Aliyun.AccessKeySecret,
-						conf.G_Config.Aliyun.AppKey))
+						conf.G_Config.Aliyun.AppKey, conf.G_Config.WellKnownNumber, conf.G_Config.WellKnownWord))
 			}
 			a.idleGenerator[itr] = struct{}{}
 		}

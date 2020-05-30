@@ -89,16 +89,18 @@ func (g *GoogleConf) Check() bool {
 
 //应用程序配置
 type Config struct {
-	Baidu          ApiConf     `yaml:"baidu"`
-	Google         GoogleConf  `yaml:"google"`
-	Tencent        TencentConf `yaml:"tencent"`
-	Aliyun         AliYunConf  `yaml:"aliyun"`
-	SampleRate     int32
-	AudioCachePath string   `yaml:"audio_cache_path"`
-	SrtPath        string   `yaml:"srt_path"`
-	TransTools     []string `yaml:"translate_tools"`
-	GenerateTools  []string `yaml:"generate_tools"`
-	FFmpeg         string   `yaml:"ffmpeg"`
+	Baidu           ApiConf     `yaml:"baidu"`
+	Google          GoogleConf  `yaml:"google"`
+	Tencent         TencentConf `yaml:"tencent"`
+	Aliyun          AliYunConf  `yaml:"aliyun"`
+	SampleRate      int32
+	AudioCachePath  string            `yaml:"audio_cache_path"`
+	SrtPath         string            `yaml:"srt_path"`
+	TransTools      []string          `yaml:"translate_tools"`
+	GenerateTools   []string          `yaml:"generate_tools"`
+	FFmpeg          string            `yaml:"ffmpeg"`
+	WellKnownWord   map[string]string `yaml:"well_known_word"`
+	WellKnownNumber map[string]int    `yaml:"well_known_number"`
 }
 
 func Load() (err error) {

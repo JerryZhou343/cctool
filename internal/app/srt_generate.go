@@ -80,7 +80,7 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 	err = extractor.Valid()
 	if err != nil {
 		task.State = TaskStateFailed
-		logrus.Errorf("task:[%s], check extractor  failed [%+v]", task, err)
+		logrus.Errorf("task:[%s], check extractor  failed [%v]", task, err)
 		return
 	}
 	flag = utils.CheckFileExist(conf.G_Config.AudioCachePath)
@@ -89,7 +89,7 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 		if err != nil {
 			task.Failed(err)
 			task.State = TaskStateFailed
-			logrus.Errorf("create directory failed [%+v]", err)
+			logrus.Errorf("create directory failed [%v]", err)
 			return
 		}
 	}
@@ -98,7 +98,7 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 	if flag {
 		err = os.Remove(dstAudioFile)
 		if err != nil {
-			logrus.Errorf("remove failed [%s] failed [%+v]", dstAudioFile, err)
+			logrus.Errorf("remove failed [%s] failed [%v]", dstAudioFile, err)
 			task.Failed(err)
 			task.State = TaskStateFailed
 			return
@@ -109,7 +109,7 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 	if err != nil {
 		task.Failed(err)
 		task.State = TaskStateFailed
-		logrus.Errorf("task[%s] extract audio failed [%+v]", task, err)
+		logrus.Errorf("task[%s] extract audio failed [%v]", task, err)
 		return
 	}
 	defer os.Remove(dstAudioFile)
@@ -120,7 +120,7 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 	if err != nil {
 		task.Failed(err)
 		task.State = TaskStateFailed
-		logrus.Errorf("task[%s] upload file failed [%+v]", task, err)
+		logrus.Errorf("task[%s] upload file failed [%v]", task, err)
 		return
 	}
 	defer s.storage.DeleteFile(objName)
@@ -135,7 +135,7 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 	if err != nil {
 		task.Failed(err)
 		task.State = TaskStateFailed
-		logrus.Errorf("task[%s] recognize failed [%+v]", task, err)
+		logrus.Errorf("task[%s] recognize failed [%v]", task, err)
 		return
 	}
 	//4. 输出
@@ -144,7 +144,7 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 	if err != nil {
 		task.Failed(err)
 		task.State = TaskStateFailed
-		logrus.Errorf("task[%s] write srt failed [%+v]", task, err)
+		logrus.Errorf("task[%s] write srt failed [%v]", task, err)
 		return
 	}
 	task.State = TaskStateDone

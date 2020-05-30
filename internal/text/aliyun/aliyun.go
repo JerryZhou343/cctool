@@ -12,52 +12,15 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
 	"github.com/pkg/errors"
+	"io/ioutil"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
 
-var (
-	WellKnownNumber = map[string]int{
-		"zero":      0,
-		"one":       1,
-		"two":       2,
-		"three":     3,
-		"four":      4,
-		"five":      5,
-		"six":       6,
-		"seven":     7,
-		"eight":     8,
-		"nine":      9,
-		"ten":       10,
-		"eleven":    11,
-		"twelve":    12,
-		"thirteen":  13,
-		"fourteen":  14,
-		"fifteen":   15,
-		"sixteen":   16,
-		"seventeen": 17,
-		"eighteen":  18,
-		"nineteen":  19,
-		"twenty":    20,
-		"thirty":    30,
-		"forty":     40,
-		"fifty":     50,
-		"sixty":     60,
-		"seventy":   70,
-		"eighty":    80,
-		"ninety":    90,
-		"thousand":  1000,
-		"hundred":   100,
-		"million":   1000000,
-		"minus":     -99,
-	}
-
-	WellKnowUnit = map[string]string{
-		"b": "bytes",
-	}
-)
+var ()
 
 const (
 	regexNumber = `^[\-0-9][0-9]*(.[0-9]+)?$`
@@ -67,13 +30,18 @@ type Speech struct {
 	accessKeyId     string
 	accessKeySecret string
 	appKey          string
+	wellKnownWord   map[string]string
+	wellKnownNumber map[string]int
 }
 
-func NewSpeech(accessKeyId, accessKeySecret, appKey string) text.ISpeech {
+func NewSpeech(accessKeyId, accessKeySecret, appKey string,
+	wellKnownNumber map[string]int, wellKnownWord map[string]string) text.ISpeech {
 	return &Speech{
 		accessKeyId:     accessKeyId,
 		accessKeySecret: accessKeySecret,
 		appKey:          appKey,
+		wellKnownNumber: wellKnownNumber,
+		wellKnownWord:   wellKnownWord,
 	}
 }
 
@@ -102,6 +70,11 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (ret []*srt.Srt,
 		return
 	}
 	ret, err = s.BreakSentence(0, rsp)
+
+	if err != nil {
+		data, _ := json.Marshal(rsp)
+		_ = ioutil.WriteFile(fmt.Sprintf("log/dump_%d.json", time.Now().Unix()), data, os.ModePerm)
+	}
 
 	return
 }
@@ -251,7 +224,7 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt, er
 
 				word := strings.ToLower(strings.TrimSpace(rsp.Result.Words[wIdx].Word))
 				//当前单词是数字,并且句子中的词也是数字
-				if v, ok := WellKnownNumber[word]; ok && re.Match([]byte(sword)) {
+				if v, ok := s.wellKnownNumber[word]; ok && re.Match([]byte(sword)) {
 					numberFlag = true
 					//如果首词是数字
 					if swIdx == 0 && firstSetFlag {
@@ -269,7 +242,7 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt, er
 				}
 
 				//前面一个词是数字，但是现在这个词不是数字了
-				if _, ok := WellKnownNumber[word]; !ok && numberFlag == true {
+				if _, ok := s.wellKnownNumber[word]; !ok && numberFlag == true {
 					numberFlag = false
 					break
 				}
@@ -293,7 +266,7 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt, er
 
 //sw 句子中的词， w单词
 func (s *Speech) Equal(sw, w string) bool {
-	if v, ok := WellKnowUnit[sw]; ok {
+	if v, ok := s.wellKnownWord[sw]; ok {
 		if v == w {
 			return true
 		}
