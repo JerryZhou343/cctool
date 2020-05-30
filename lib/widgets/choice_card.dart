@@ -10,15 +10,18 @@ class ChoiceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final TextStyle textStyle = Theme.of(context).textTheme.headline4;
-    return Card(
-      color: Colors.white,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: ConstructWidget(this.choice, textStyle),
+    return Scaffold(
+      body: Card(
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: ConstructWidget(this.choice, textStyle),
+          ),
         ),
       ),
+      floatingActionButton: buildActionButton(context, choice),
     );
   }
 }

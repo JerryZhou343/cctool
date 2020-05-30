@@ -1,51 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:cctool/model/choice.dart';
 import 'package:cctool/common/const.dart';
+import 'package:cctool/widgets/translate_task.dart';
 
 List<Widget> ConstructWidget(Choice choice, TextStyle textStyle) {
   if (choice.title != Setting) {
     return <Widget>[
       Icon(choice.icon, size: 128.0, color: textStyle.color),
       Text(choice.title, style: textStyle),
-      Positioned(top:1000,left: 1000,child:buildActionButton(choice))
     ];
   } else {
     return <Widget>[
       Icon(choice.icon, size: 128.0, color: textStyle.color),
       Text(choice.title, style: textStyle),
-      buildActionButton(choice)
     ];
   }
 }
 
-Column buildButtonColumn(IconData icon, String label) {
-  Color color = Color(0xFFFF9000);
-
-  return new Column(
-    mainAxisSize: MainAxisSize.min,
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      new Icon(icon, color: color),
-      new Container(
-        margin: const EdgeInsets.only(top: 8.0),
-        child: new Text(
-          label,
-          style: new TextStyle(
-            fontSize: 12.0,
-            fontWeight: FontWeight.w400,
-            color: color,
-          ),
-        ),
-      ),
-    ],
-  );
-}
-
-Widget buildActionButton(Choice choice) {
+Widget buildActionButton(BuildContext context, Choice choice) {
   if (choice.title != Setting) {
     return FloatingActionButton(
       onPressed: () {
         // Add your onPressed code here!
+        switch (choice.title) {
+          case Translate:
+            {
+              showDialog(
+                // 传入 context
+                context: context,
+                // 构建 Dialog 的视图
+                builder: buildTranslateTask,
+              );
+            }
+        }
       },
       child: Icon(Icons.navigation),
       backgroundColor: Colors.green,
