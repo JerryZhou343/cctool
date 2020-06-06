@@ -1,6 +1,7 @@
 import 'package:cctool/model/translate_task.dart';
 import 'package:flutter/material.dart';
 import 'package:cctool/widgets/form_check_box.dart';
+import 'package:cctool/utils/file_picker.dart';
 
 Widget buildTranslateTask(BuildContext context) {
   var task = TranslateTask();
@@ -17,6 +18,8 @@ Widget buildTranslateTask(BuildContext context) {
       task.merge = value;
     },
   );
+
+
 
   //var titleStyle = TextStyle(fontSize: 20, decoration: TextDecoration.none);
   return SimpleDialog(
@@ -75,7 +78,15 @@ Widget buildTranslateTask(BuildContext context) {
                   // 当用户确定已经完成编辑时触发
                   onFieldSubmitted: (value) {},
                 )),
-                FlatButton(onPressed: null, child: Text("浏览文件"))
+                FlatButton(onPressed: (){
+                 try{
+                   var file = FilePicker.getMultiFile();
+                   task.files = file
+                 }catch(e){
+
+                 }
+
+                } , child: Text("浏览文件"))
               ],
             )),
         Container(
@@ -101,3 +112,5 @@ Widget buildTranslateTask(BuildContext context) {
     ],
   );
 }
+
+
