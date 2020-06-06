@@ -8,6 +8,7 @@ require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.218
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.0+incompatible
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
+	github.com/gen2brain/dlgs v0.0.0-20200211102745-b9c2664df42f
 	github.com/go-flutter-desktop/go-flutter v0.41.0
 	github.com/golang/protobuf v1.4.2
 	github.com/kyai/google-translate-tk v0.0.0-20190603073310-c7f5c6d1ce08
