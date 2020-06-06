@@ -92,6 +92,9 @@ func WriteSrt(filePath string, src []*Srt) (err error) {
 		absFilePath string
 		dstFile     *os.File
 	)
+	if len(src) == 0 {
+		return
+	}
 	sort.Sort(SrtSort(src))
 
 	absFilePath, err = filepath.Abs(filePath)

@@ -25,7 +25,7 @@ func NewSpeech(credentialsFile string, sampleRate int32) text.ISpeech {
 	}
 }
 
-func (s *Speech) Recognize(ctx context.Context, fileURI string) (ret []*srt.Srt, err error) {
+func (s *Speech) Recognize(ctx context.Context, fileURI string) (ret []*srt.Srt, retW []*srt.Srt, err error) {
 	var (
 		client *sp.Client
 	)

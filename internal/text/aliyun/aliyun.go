@@ -45,7 +45,7 @@ func NewSpeech(accessKeyId, accessKeySecret, appKey string,
 	}
 }
 
-func (s *Speech) Recognize(ctx context.Context, fileUri string) (ret []*srt.Srt, err error) {
+func (s *Speech) Recognize(ctx context.Context, fileUri string) (sRet []*srt.Srt, wRet []*srt.Srt, err error) {
 	var (
 		taskId string
 		rsp    *Response
@@ -66,14 +66,15 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (ret []*srt.Srt,
 		return
 	}
 	if rsp.StatusText != STATUS_SUCCESS {
-		err = errors.New("recognize failed")
+		err = errors.WithMessage(err, "recognize failed")
 		return
 	}
-	ret, err = s.BreakSentence(0, rsp)
-
+	sRet, err = s.Sentence(0, rsp)
+	wRet, err = s.BreakSentence(0, rsp)
 	if err != nil {
 		data, _ := json.Marshal(rsp)
 		_ = ioutil.WriteFile(fmt.Sprintf("log/dump_%d.json", time.Now().Unix()), data, os.ModePerm)
+		err = nil
 	}
 
 	return
@@ -99,7 +100,7 @@ func (s *Speech) queryResult(ctx context.Context, client *sdk.Client, taskId str
 				return
 			}
 			if getResponse.GetHttpStatus() != 200 {
-				fmt.Println("识别结果查询请求失败，Http错误码：", getResponse.GetHttpStatus())
+				err = errors.New(fmt.Sprintf("识别结果查询请求失败，Http错误码：%d", getResponse.GetHttpStatus()))
 				break
 			}
 			ret = &Response{}
@@ -277,4 +278,24 @@ func (s *Speech) Equal(sw, w string) bool {
 	}
 
 	return false
+}
+
+func (s *Speech) Sentence(channelId int, rsp *Response) (ret []*srt.Srt, err error) {
+	var (
+		idx = 0
+	)
+	for _, sentence := range rsp.Result.Sentences {
+		if sentence.ChannelId != channelId {
+			continue
+		}
+		idx += 1
+		ret = append(ret, &srt.Srt{
+			Sequence: idx,
+			Start:    utils.MillisDurationConv(sentence.BeginTime),
+			End:      utils.MillisDurationConv(sentence.EndTime),
+			Subtitle: sentence.Text,
+		})
+	}
+
+	return
 }

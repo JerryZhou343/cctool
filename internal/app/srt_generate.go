@@ -4,12 +4,10 @@ import (
 	"context"
 	"github.com/JerryZhou343/cctool/internal/conf"
 	"github.com/JerryZhou343/cctool/internal/srt"
-	"github.com/JerryZhou343/cctool/internal/status"
 	"github.com/JerryZhou343/cctool/internal/store"
 	"github.com/JerryZhou343/cctool/internal/text"
 	"github.com/JerryZhou343/cctool/internal/utils"
 	"github.com/JerryZhou343/cctool/internal/voice"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
@@ -44,7 +42,8 @@ func (s *SrtGenerator) Done() {
 func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack func(generator *SrtGenerator)) {
 	var (
 		uri      string
-		ret      []*srt.Srt
+		wret     []*srt.Srt // 词断句结果
+		sret     []*srt.Srt //原始句子结果
 		absVideo string
 		objName  string
 		err      error
@@ -70,8 +69,9 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 	fileName := filepath.Base(absVideo)
 	name := strings.TrimSuffix(fileName, filepath.Ext(fileName))
 	dstAudioFile := filepath.Join(conf.G_Config.AudioCachePath, name+".mp3")
-	srtDstFilePath := filepath.Join(conf.G_Config.SrtPath, name+".srt")
-	task.DstFile = srtDstFilePath
+	wsrtDstFilePath := filepath.Join(conf.G_Config.SrtPath, name+"_word.srt")
+	ssrtDstFilePath := filepath.Join(conf.G_Config.SrtPath, name+"_sentence.srt")
+	task.DstFile = wsrtDstFilePath
 
 	task.State = TaskStateDoing
 	//1. 抽取音频
@@ -127,11 +127,7 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 
 	//3. 识别
 	task.Step = GenerateStepRecognize
-	ret, err = s.speech.Recognize(ctx, uri)
-	//bug 不再重试
-	if errors.Cause(err) == status.ErrSplitSentenceBug {
-		task.FailedTimes = MaxRetryTimes
-	}
+	sret, wret, err = s.speech.Recognize(ctx, uri)
 	if err != nil {
 		task.Failed(err)
 		task.State = TaskStateFailed
@@ -140,7 +136,14 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 	}
 	//4. 输出
 	task.Step = GenerateStepGenerateSrt
-	err = srt.WriteSrt(srtDstFilePath, ret)
+	err = srt.WriteSrt(wsrtDstFilePath, wret)
+	if err != nil {
+		task.Failed(err)
+		task.State = TaskStateFailed
+		logrus.Errorf("task[%s] write srt failed [%v]", task, err)
+		return
+	}
+	err = srt.WriteSrt(ssrtDstFilePath, sret)
 	if err != nil {
 		task.Failed(err)
 		task.State = TaskStateFailed

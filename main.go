@@ -10,7 +10,7 @@ import (
 var (
 	Major = 1
 	Minor = 1
-	Patch = 3
+	Patch = 4
 )
 
 func main() {

@@ -6,5 +6,5 @@ import (
 )
 
 type ISpeech interface {
-	Recognize(ctx context.Context, fileURI string) ([]*srt.Srt, error)
+	Recognize(ctx context.Context, fileURI string) ([]*srt.Srt, []*srt.Srt, error)
 }
