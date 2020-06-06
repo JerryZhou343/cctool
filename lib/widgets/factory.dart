@@ -34,8 +34,8 @@ Widget buildActionButton(BuildContext context, Choice choice) {
             }
         }
       },
-      child: Icon(Icons.navigation),
-      backgroundColor: Colors.green,
+      child: Icon(Icons.plus_one),
+      backgroundColor: Colors.blue,
     );
   } else {
     return FloatingActionButton.extended(

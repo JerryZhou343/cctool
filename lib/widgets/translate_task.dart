@@ -2,12 +2,18 @@ import 'package:cctool/model/translate_task.dart';
 import 'package:flutter/material.dart';
 import 'package:cctool/widgets/form_check_box.dart';
 import 'package:cctool/utils/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 Widget buildTranslateTask(BuildContext context) {
   var task = TranslateTask();
   task.from = "en";
   task.to = "zh";
   task.merge = false;
+
+  String _extension = ".srt,.mp4";
+  FileType _pickingType = FileType.custom;
+
   var style = TextStyle(fontSize: 16, decoration: TextDecoration.none);
   final TextStyle headStyle = Theme.of(context).textTheme.headline4;
 
@@ -18,8 +24,6 @@ Widget buildTranslateTask(BuildContext context) {
       task.merge = value;
     },
   );
-
-
 
   //var titleStyle = TextStyle(fontSize: 20, decoration: TextDecoration.none);
   return SimpleDialog(
@@ -65,7 +69,7 @@ Widget buildTranslateTask(BuildContext context) {
               children: <Widget>[
                 Expanded(
                     child: TextFormField(
-                  initialValue: task.to,
+                  initialValue: task.files.toString(),
                   decoration:
                       InputDecoration(prefixStyle: style, prefixText: "原始文件:"),
                   validator: (value) {
@@ -73,20 +77,29 @@ Widget buildTranslateTask(BuildContext context) {
                   },
                   //当 Form 表单调用保存方法 Save时回调的函数。
                   onSaved: (value) {
-                    task.from = value;
+                    task.files.add(value);
                   },
                   // 当用户确定已经完成编辑时触发
                   onFieldSubmitted: (value) {},
                 )),
-                FlatButton(onPressed: (){
-                 try{
-                   var file = FilePicker.getMultiFile();
-                   task.files = file
-                 }catch(e){
-
-                 }
-
-                } , child: Text("浏览文件"))
+                FlatButton(
+                    onPressed: () async {
+                      try {
+                        //key: 是文件名
+                        //value: 绝对路径
+                        var files = await FilePicker.getMultiFilePath(
+                            type: _pickingType,
+                            allowedExtensions: (_extension?.isNotEmpty ?? false)
+                                ? _extension?.replaceAll(' ', '')?.split(',')
+                                : null);
+                        files.forEach((key, value) {
+                          task.files.add(value);
+                        });
+                      } catch (e) {
+                        print("Unsupported operation" + e.toString());
+                      }
+                    },
+                    child: Text("浏览文件"))
               ],
             )),
         Container(
@@ -112,5 +125,3 @@ Widget buildTranslateTask(BuildContext context) {
     ],
   );
 }
-
-
