@@ -49,6 +49,7 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 		err      error
 	)
 	defer doneCallBack(s)
+	logrus.Infof("get generate task %s",task)
 	//前置检查
 	absVideo, err = filepath.Abs(task.SrcFile)
 	if err != nil {
@@ -74,6 +75,7 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 	task.DstFile = wsrtDstFilePath
 
 	task.State = TaskStateDoing
+	logrus.Infof("start extract audio [%s]",task)
 	//1. 抽取音频
 	task.Step = GenerateStepAudio
 	extractor := voice.NewExtractor(strconv.Itoa(int(conf.G_Config.SampleRate)), conf.G_Config.FFmpeg)
@@ -113,9 +115,11 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 		return
 	}
 	defer os.Remove(dstAudioFile)
+	logrus.Infof("end extract audio %s",task)
 
 	//2. 存储
 	task.Step = GenerateStepOss
+	logrus.Infof("start upload file [%s]",task)
 	uri, objName, err = s.storage.UploadFile(dstAudioFile)
 	if err != nil {
 		task.Failed(err)
@@ -124,9 +128,10 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 		return
 	}
 	defer s.storage.DeleteFile(objName)
-
+	logrus.Infof("end upload file [%s]",task)
 	//3. 识别
 	task.Step = GenerateStepRecognize
+	logrus.Infof("start recognize [%s]",task)
 	sret, wret, err = s.speech.Recognize(ctx, uri)
 	if err != nil {
 		task.Failed(err)
@@ -134,6 +139,7 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 		logrus.Errorf("task[%s] recognize failed [%v]", task, err)
 		return
 	}
+	logrus.Infof("end recognize [%s] result sret [%d], wret[%d]",task,len(sret), len(wret))
 	//4. 输出
 	task.Step = GenerateStepGenerateSrt
 	err = srt.WriteSrt(wsrtDstFilePath, wret)
@@ -150,5 +156,6 @@ func (s *SrtGenerator) Do(ctx context.Context, task *GenerateTask, doneCallBack 
 		logrus.Errorf("task[%s] write srt failed [%v]", task, err)
 		return
 	}
+	logrus.Infof("write srt end [%s]",task)
 	task.State = TaskStateDone
 }

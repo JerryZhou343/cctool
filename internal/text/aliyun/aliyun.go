@@ -12,6 +12,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -49,13 +50,14 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (sRet []*srt.Srt
 	var (
 		taskId string
 		rsp    *Response
+		client *sdk.Client
 	)
 
-	client, err := sdk.NewClientWithAccessKey(REGION_ID, s.accessKeyId, s.accessKeySecret)
+	client, err = sdk.NewClientWithAccessKey(REGION_ID, s.accessKeyId, s.accessKeySecret)
 	if err != nil {
 		return
 	}
-
+	logrus.Info("aliyun speech add task %s",fileUri)
 	taskId, err = s.sendTask(client, fileUri)
 	if err != nil {
 		return
@@ -65,6 +67,7 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (sRet []*srt.Srt
 	if err != nil || rsp == nil {
 		return
 	}
+	logrus.Infof("aliyun speech recognize result [%d]",len(rsp.Result.Sentences))
 	if rsp.StatusText != STATUS_SUCCESS {
 		err = errors.WithMessage(err, "recognize failed")
 		return
@@ -73,6 +76,7 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (sRet []*srt.Srt
 	wRet, err = s.BreakSentence(0, rsp)
 	if err != nil {
 		data, _ := json.Marshal(rsp)
+		logrus.Errorf("break sentence failed [%+v]",err)
 		_ = ioutil.WriteFile(fmt.Sprintf("log/dump_%d.json", time.Now().Unix()), data, os.ModePerm)
 		err = nil
 	}
