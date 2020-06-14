@@ -57,7 +57,7 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (sRet []*srt.Srt
 	if err != nil {
 		return
 	}
-	logrus.Info("aliyun speech add task %s",fileUri)
+	logrus.Infof("aliyun speech add task %s",fileUri)
 	taskId, err = s.sendTask(client, fileUri)
 	if err != nil {
 		return
@@ -67,11 +67,11 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (sRet []*srt.Srt
 	if err != nil || rsp == nil {
 		return
 	}
-	logrus.Infof("aliyun speech recognize result [%d]",len(rsp.Result.Sentences))
 	if rsp.StatusText != STATUS_SUCCESS {
 		err = errors.WithMessage(err, "recognize failed")
 		return
 	}
+	logrus.Infof("aliyun speech recognize result [%d]",len(rsp.Result.Sentences))
 	sRet, err = s.Sentence(0, rsp)
 	wRet, err = s.BreakSentence(0, rsp)
 	if err != nil {
@@ -217,7 +217,14 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt, er
 				sword = strings.TrimRight(sword, text.SentenceBreak)
 			}
 
-			sword = strings.ToLower(strings.TrimSpace(sword))
+			sword = strings.ToLower(strings.TrimFunc(strings.TrimSpace(sword), func(r rune) bool {
+				if strings.ContainsRune(text.SentenceBreak,r){
+					return true
+				}else{
+					return false
+				}
+				return false
+			}))
 
 			numberFlag := false
 			firstSetFlag := true
@@ -226,8 +233,8 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt, er
 				if rsp.Result.Words[wIdx].ChannelId != channelId {
 					continue
 				}
-
 				word := strings.ToLower(strings.TrimSpace(rsp.Result.Words[wIdx].Word))
+				fmt.Printf("%s:%s\n",word,sword)
 				//当前单词是数字,并且句子中的词也是数字
 				if v, ok := s.wellKnownNumber[word]; ok && re.Match([]byte(sword)) {
 					numberFlag = true
