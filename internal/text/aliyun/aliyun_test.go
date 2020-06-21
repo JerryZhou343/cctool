@@ -3,7 +3,6 @@ package aliyun
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"testing"
 )
 
@@ -59,12 +58,12 @@ const (
 )
 
 func TestSpeech_BreakSentence(t *testing.T) {
-	casex, err := ioutil.ReadFile("/Users/apple/go/src/github.com/JerryZhou343/ClosedCaption/bin/log/dump_1591410628.json")
+	//casex, err := ioutil.ReadFile("/Users/apple/go/src/github.com/JerryZhou343/ClosedCaption/bin/log/dump_1591410628.json")
 	rsp := &Response{}
-	json.Unmarshal([]byte(casex), rsp)
+	json.Unmarshal([]byte(case1), rsp)
 	sp := NewSpeech("", "", "",
 		wellKnownNumber, wellKnownWord)
-	ret, err := sp.(*Speech).BreakSentence(0, rsp)
+	ret, err := sp.(*Speech).NewBreakSentence(0, rsp)
 	if err != nil {
 		t.Errorf("%+v", err)
 		return

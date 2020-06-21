@@ -57,7 +57,7 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (sRet []*srt.Srt
 	if err != nil {
 		return
 	}
-	logrus.Infof("aliyun speech add task %s",fileUri)
+	logrus.Infof("aliyun speech add task %s", fileUri)
 	taskId, err = s.sendTask(client, fileUri)
 	if err != nil {
 		return
@@ -71,12 +71,12 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (sRet []*srt.Srt
 		err = errors.WithMessage(err, "recognize failed")
 		return
 	}
-	logrus.Infof("aliyun speech recognize result [%d]",len(rsp.Result.Sentences))
+	logrus.Infof("aliyun speech recognize result [%d]", len(rsp.Result.Sentences))
 	sRet, err = s.Sentence(0, rsp)
-	wRet, err = s.BreakSentence(0, rsp)
+	wRet, err = s.NewBreakSentence(0, rsp)
 	if err != nil {
 		data, _ := json.Marshal(rsp)
-		logrus.Errorf("break sentence failed [%+v]",err)
+		logrus.Errorf("break sentence failed [%+v]", err)
 		_ = ioutil.WriteFile(fmt.Sprintf("log/dump_%d.json", time.Now().Unix()), data, os.ModePerm)
 		err = nil
 	}
@@ -165,48 +165,8 @@ func (s *Speech) sendTask(client *sdk.Client, URI string) (taskId string, err er
 }
 
 func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt, err error) {
-	var (
-		newLine bool
-		idx     int
-	)
-	//1. 重新断句
-	idx = 0
-	newLine = true
-	tmpSrt := &srt.Srt{}
-	for _, sentence := range rsp.Result.Sentences {
-		//不是目标通道就过掉
-		if sentence.ChannelId != channelId {
-			continue
-		}
-		//1.1 按照空格切词
-		words := strings.Split(sentence.Text, " ")
-		//1.2 断句
-		for _, word := range words {
-			word = strings.TrimSpace(word)
-			if word == "" {
-				continue
-			}
-			//句子结尾
-			if strings.ContainsAny(word, ",.?!，。？！") {
-				tmpSrt.Subtitle += " " + word
-				newLine = true
-				continue
-			}
-			//新句子开头
-			if newLine == true {
-				idx += 1
-				tmpSrt = &srt.Srt{
-					Sequence: idx,
-					Subtitle: word,
-				}
-				ret = append(ret, tmpSrt)
-				newLine = false
-			} else { //句子中间
-				tmpSrt.Subtitle += " " + word
-			}
-		}
-	}
 
+	ret = s.SplitSentence(channelId, rsp)
 	re, _ := regexp.Compile(regexNumber)
 	curIdx := 0
 	for _, itr := range ret {
@@ -218,9 +178,9 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt, er
 			}
 
 			sword = strings.ToLower(strings.TrimFunc(strings.TrimSpace(sword), func(r rune) bool {
-				if strings.ContainsRune(text.SentenceBreak,r){
+				if strings.ContainsRune(text.SentenceBreak, r) {
 					return true
-				}else{
+				} else {
 					return false
 				}
 				return false
@@ -306,6 +266,147 @@ func (s *Speech) Sentence(channelId int, rsp *Response) (ret []*srt.Srt, err err
 			End:      utils.MillisDurationConv(sentence.EndTime),
 			Subtitle: sentence.Text,
 		})
+	}
+
+	return
+}
+
+func (s *Speech) SplitSentence(channelId int, rsp *Response) (ret []*srt.Srt) {
+	var (
+		newLine bool
+		idx     int
+	)
+	//1. 重新断句
+	idx = 0
+	newLine = true
+	tmpSrt := &srt.Srt{}
+	for _, sentence := range rsp.Result.Sentences {
+		//不是目标通道就过掉
+		if sentence.ChannelId != channelId {
+			continue
+		}
+		//1.1 按照空格切词
+		words := strings.Split(sentence.Text, " ")
+		//1.2 断句
+		for _, word := range words {
+			word = strings.TrimSpace(word)
+			if word == "" {
+				continue
+			}
+			//句子结尾
+			if strings.ContainsAny(word, ",.?!，。？！") {
+				tmpSrt.Subtitle += " " + word
+				newLine = true
+				continue
+			}
+			//新句子开头
+			if newLine == true {
+				idx += 1
+				tmpSrt = &srt.Srt{
+					Sequence: idx,
+					Subtitle: word,
+				}
+				ret = append(ret, tmpSrt)
+				newLine = false
+			} else { //句子中间
+				tmpSrt.Subtitle += " " + word
+			}
+		}
+	}
+
+	return
+}
+
+func (s *Speech) NewBreakSentence(channelId int, rsp *Response) (ret []*srt.Srt, err error) {
+	var (
+		curIdx = 0
+	)
+
+	ret = s.SplitSentence(channelId, rsp)
+	re, _ := regexp.Compile(regexNumber)
+	swStack := []*srt.Srt{}
+	wStack := []*srt.Srt{}
+
+	for sIdx, itr := range ret {
+		sentenceWords := strings.Split(itr.Subtitle, " ")
+		for swIdx, sw := range sentenceWords { //句子中的词
+
+			//提取原始句子中的词
+			sword := sw
+			if strings.ContainsAny(sw, text.SentenceBreak) {
+				sword = strings.TrimRight(sword, text.SentenceBreak)
+			}
+
+			sword = strings.ToLower(strings.TrimFunc(strings.TrimSpace(sword), func(r rune) bool {
+				if strings.ContainsRune(text.SentenceBreak, r) {
+					return true
+				} else {
+					return false
+				}
+				return false
+			}))
+
+			for wIdx := curIdx; wIdx < len(rsp.Result.Words); wIdx++ {
+				//更新curIdx
+				if rsp.Result.Words[wIdx].ChannelId != channelId {
+					continue
+				}
+				word := strings.ToLower(strings.TrimSpace(rsp.Result.Words[wIdx].Word))
+
+				fmt.Printf("sw:%s , w: %s  info: %+v\n", sword, word, rsp.Result.Words[wIdx])
+				if s.Equal(sword, word) {
+
+					//句子首词匹配
+					if swIdx == 0 {
+						itr.Start = utils.MillisDurationConv(rsp.Result.Words[wIdx].BeginTime)
+						//句子尾
+					} else if swIdx == len(sentenceWords)-1 {
+						itr.End = utils.MillisDurationConv(rsp.Result.Words[wIdx].EndTime)
+					}
+
+					//判断栈中是否为空
+					if len(swStack) > 0 {
+						//前一个句子没有处理完
+						if swIdx == 0 {
+							ret[sIdx-1].End = utils.MillisDurationConv(rsp.Result.Words[wIdx].BeginTime)
+						}
+						//当前句子的首词被暂存
+						if itr.Start == "" {
+							//取暂存的中第一词
+							itr.Start = wStack[len(wStack)-1].Start
+						}
+						swStack = swStack[:0]
+						wStack = wStack[:0]
+					}
+
+					curIdx = wIdx + 1
+					break //配对下一个词
+				} else {
+
+					//词结果中需要暂存的情况
+					if _, ok := s.wellKnownNumber[word]; ok {
+						wStack = append(wStack, &srt.Srt{
+							Sequence: 0,
+							Start:    utils.MillisDurationConv(rsp.Result.Words[wIdx].BeginTime),
+							End:      utils.MillisDurationConv(rsp.Result.Words[wIdx].EndTime),
+							Subtitle: word,
+						})
+						continue
+					}
+
+					//句子中词需要暂存的情况
+					if re.Match([]byte(sword)) {
+						swStack = append(swStack, &srt.Srt{
+							Sequence: 0,
+							Start:    "",
+							End:      "",
+							Subtitle: sword,
+						})
+						break
+					}
+				}
+			}
+		}
 	}
 
 	return
