@@ -234,7 +234,7 @@ func (s *Speech) BreakSentence(channelId int, rsp *Response) (ret []*srt.Srt, er
 					continue
 				}
 				word := strings.ToLower(strings.TrimSpace(rsp.Result.Words[wIdx].Word))
-				fmt.Printf("%s:%s\n",word,sword)
+				//fmt.Printf("%s:%s\n",word,sword)
 				//当前单词是数字,并且句子中的词也是数字
 				if v, ok := s.wellKnownNumber[word]; ok && re.Match([]byte(sword)) {
 					numberFlag = true
