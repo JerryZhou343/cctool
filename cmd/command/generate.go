@@ -1,6 +1,6 @@
 //从视频生成字幕
 
-package cmd
+package command
 
 import (
 	"github.com/JerryZhou343/cctool/internal/app"

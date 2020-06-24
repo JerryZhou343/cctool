@@ -1,6 +1,4 @@
-//翻译字幕文件
-
-package cmd
+package command
 
 import (
 	"github.com/JerryZhou343/cctool/internal/app"
@@ -11,23 +9,18 @@ import (
 )
 
 var (
-	translateCmd = cobra.Command{
-		Use:   "translate",
-		Short: "翻译字幕",
+	BreakCmd = cobra.Command{
+		Use:   "break",
+		Short: "重新断句",
 		Args:  cobra.OnlyValidArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(flags.SrcFiles) == 0 {
 				err = status.ErrSourceFileNotEnough
 				return
 			}
-			err = application.LoadTranslateTools()
-			if err != nil {
-				return
-			}
-
 			application.Run()
 			for _, itr := range flags.SrcFiles {
-				task := app.NewTranslateTask(itr, flags.From, flags.To, flags.Merge)
+				task := app.NewCleanTask(itr)
 				application.AddTask(task)
 			}
 
@@ -40,9 +33,5 @@ var (
 )
 
 func init() {
-	//翻译
-	translateCmd.PersistentFlags().StringSliceVarP(&flags.SrcFiles, "source", "s", []string{}, "源文件")
-	translateCmd.PersistentFlags().StringVarP(&flags.From, "from", "f", "en", "源语言")
-	translateCmd.PersistentFlags().StringVarP(&flags.To, "to", "t", "zh", "目标语言")
-	translateCmd.PersistentFlags().BoolVarP(&flags.Merge, "merge", "m", false, "双语字幕")
+	BreakCmd.PersistentFlags().StringSliceVarP(&flags.SrcFiles, "source", "s", []string{}, "单个或多个源文件")
 }

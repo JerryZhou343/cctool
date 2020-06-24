@@ -1,6 +1,4 @@
-// 字幕文件格式转换
-
-package cmd
+package command
 
 import (
 	"github.com/JerryZhou343/cctool/internal/app"
@@ -11,9 +9,9 @@ import (
 )
 
 var (
-	convertCmd = cobra.Command{
-		Use:   "convert",
-		Short: "转换字幕;bcc 转 srt",
+	cleanCmd = cobra.Command{
+		Use:   "clean",
+		Short: "清除空白字幕",
 		Args:  cobra.OnlyValidArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if len(flags.SrcFiles) == 0 {
@@ -22,7 +20,7 @@ var (
 			}
 			application.Run()
 			for _, itr := range flags.SrcFiles {
-				task := app.NewConvertTask(itr, "bcc", "srt")
+				task := app.NewCleanTask(itr)
 				application.AddTask(task)
 			}
 
@@ -35,5 +33,5 @@ var (
 )
 
 func init() {
-	convertCmd.PersistentFlags().StringSliceVarP(&flags.SrcFiles, "source", "s", []string{}, "单个或多个源文件")
+	cleanCmd.PersistentFlags().StringSliceVarP(&flags.SrcFiles, "source", "s", []string{}, "单个或多个源文件")
 }

@@ -73,13 +73,18 @@ func (s *Speech) Recognize(ctx context.Context, fileUri string) (sRet []*srt.Srt
 	}
 	logrus.Infof("aliyun speech recognize result [%d]", len(rsp.Result.Sentences))
 	sRet, err = s.Sentence(0, rsp)
-	wRet, err = s.NewBreakSentence(0, rsp)
 	if err != nil {
-		data, _ := json.Marshal(rsp)
-		logrus.Errorf("break sentence failed [%+v]", err)
-		_ = ioutil.WriteFile(fmt.Sprintf("log/dump_%d.json", time.Now().Unix()), data, os.ModePerm)
-		err = nil
+		logrus.Errorf("s.Sentence error: [%+v]", err)
 	}
+	data, _ := json.Marshal(rsp)
+	logrus.Errorf("break sentence failed [%+v]", err)
+	_ = ioutil.WriteFile(fmt.Sprintf("log/dump_%d.json", time.Now().Unix()), data, os.ModePerm)
+	//err = nil
+
+	wRet, err = s.NewBreakSentence(0, rsp)
+	//if err != nil {
+
+	//}
 
 	return
 }
@@ -321,7 +326,11 @@ func (s *Speech) NewBreakSentence(channelId int, rsp *Response) (ret []*srt.Srt,
 	var (
 		curIdx = 0
 	)
-
+	defer func() {
+		if e := recover(); e != nil {
+			logrus.Errorf("panic:%+v", err)
+		}
+	}()
 	ret = s.SplitSentence(channelId, rsp)
 	re, _ := regexp.Compile(regexNumber)
 	swStack := []*srt.Srt{}
@@ -353,7 +362,7 @@ func (s *Speech) NewBreakSentence(channelId int, rsp *Response) (ret []*srt.Srt,
 				}
 				word := strings.ToLower(strings.TrimSpace(rsp.Result.Words[wIdx].Word))
 
-				fmt.Printf("sw:%s , w: %s  info: %+v\n", sword, word, rsp.Result.Words[wIdx])
+				logrus.Debugf("sw:%s , w: %s  info: %+v\n", sword, word, rsp.Result.Words[wIdx])
 				if s.Equal(sword, word) {
 
 					//句子首词匹配

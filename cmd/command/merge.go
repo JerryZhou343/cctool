@@ -1,6 +1,6 @@
 //合并字幕文件
 
-package cmd
+package command
 
 import (
 	"fmt"

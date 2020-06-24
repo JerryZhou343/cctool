@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/JerryZhou343/cctool/cmd"
+	"github.com/JerryZhou343/cctool/cmd/command"
 	"github.com/JerryZhou343/cctool/internal/logger"
 	"github.com/sirupsen/logrus"
 )
@@ -15,7 +15,7 @@ var (
 
 func main() {
 	logger.Init("debug", "log/", "cctool.log")
-	cmd.RootCmd.Version = fmt.Sprintf("v%d.%d.%d", Major, Minor, Patch)
-	logrus.Info("cctool version:", cmd.RootCmd.Version)
-	cmd.RootCmd.Execute()
+	command.RootCmd.Version = fmt.Sprintf("v%d.%d.%d", Major, Minor, Patch)
+	logrus.Info("cctool version:", command.RootCmd.Version)
+	command.RootCmd.Execute()
 }
