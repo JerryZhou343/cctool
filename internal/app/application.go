@@ -2,7 +2,7 @@ package app
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"github.com/JerryZhou343/cctool/internal/bcc"
 	"github.com/JerryZhou343/cctool/internal/conf"
 	"github.com/JerryZhou343/cctool/internal/convert"
@@ -19,6 +19,8 @@ import (
 	"github.com/JerryZhou343/cctool/internal/translate/tencent"
 	"github.com/panjf2000/ants/v2"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"io/ioutil"
 	"strings"
 	"sync"
 
@@ -55,7 +57,7 @@ type Application struct {
 	//
 	ctx        context.Context
 	cancelFunc context.CancelFunc
-	msgChan    chan string
+	msgChan    chan Task
 }
 
 func NewApplication() *Application {
@@ -75,7 +77,7 @@ func NewApplication() *Application {
 		generateTaskChan: make(chan Task, 100),
 		generatorLock:    new(sync.Mutex),
 
-		msgChan: make(chan string, 1000),
+		msgChan: make(chan Task, 1000),
 	}
 	ret.ctx, ret.cancelFunc = context.WithCancel(context.Background())
 	return ret
@@ -93,7 +95,7 @@ func (a *Application) Run() {
 	go a.clean()
 }
 
-func (a *Application) GetRunningMsg() string {
+func (a *Application) GetRunningMsg() Task{
 	msg := <-a.msgChan
 	return msg
 }
@@ -199,7 +201,7 @@ func (a *Application) AddTask(task Task) (err error) {
 		a.cleanTaskChan <- task
 	}
 
-	a.msgChan <- fmt.Sprintf("添加任务成功 %s", task)
+	//a.msgChan <- fmt.Sprintf("添加任务成功 %s", task)
 	a.taskSlice = append(a.taskSlice, task)
 	return nil
 }
@@ -213,7 +215,7 @@ func (a *Application) CheckTask() {
 		select {
 		case <-time.After(2 * time.Second):
 			for _, itr := range a.taskSlice {
-				a.msgChan <- fmt.Sprintf("时间: %s %s", time.Now().Local().Format("2006-01-02 15:04:05"), itr)
+				a.msgChan <- itr
 
 				//任务超过最大重试次数就不再尝试
 				if itr.GetState() == TaskStateFailed &&
@@ -437,4 +439,44 @@ func (a *Application) clean() {
 			return
 		}
 	}
+}
+
+func (a *Application)BreakSentence()(err error){
+	var (
+		sentence []*srt.Srt
+	)
+	err = conf.Load()
+	if err != nil{
+		logrus.Errorf("load config failed")
+		return
+	}
+	speech := aliSpeech.NewSpeech("","","",
+		conf.G_Config.WellKnownNumber,conf.G_Config.WellKnownWord)
+	breakEngine := speech.(*aliSpeech.Speech)
+	for _,itr := range flags.SrcFiles{
+		f, err := ioutil.ReadFile(itr)
+		if err != nil{
+			logrus.Errorf("ioutil.ReadFile failed %+v",err)
+			continue
+		}
+		rsp := aliSpeech.Response{}
+		err = json.Unmarshal(f,&rsp)
+		if err != nil{
+			logrus.Errorf("json.Unmarshal failed %+v",err)
+			continue
+		}
+
+		sentence,err  = breakEngine.NewBreakSentence(0,&rsp)
+		if err != nil{
+			return err
+		}
+
+		err = srt.WriteSrt(flags.DstFile,sentence)
+		if err != nil{
+			logrus.Errorf("srt.WriteSrt failed %+v",err)
+		}
+	}
+
+	return nil
+
 }

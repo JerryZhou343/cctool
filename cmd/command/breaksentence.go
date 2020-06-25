@@ -1,10 +1,9 @@
 package command
 
 import (
-	"github.com/JerryZhou343/cctool/internal/app"
-	"github.com/JerryZhou343/cctool/internal/console"
 	"github.com/JerryZhou343/cctool/internal/flags"
 	"github.com/JerryZhou343/cctool/internal/status"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -14,19 +13,18 @@ var (
 		Short: "重新断句",
 		Args:  cobra.OnlyValidArgs,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			if len(flags.SrcFiles) == 0 {
-				err = status.ErrSourceFileNotEnough
-				return
+			//check
+			if len(flags.SrcFiles) != 1 {
+				return status.ErrSourceFileNotEnough
 			}
-			application.Run()
-			for _, itr := range flags.SrcFiles {
-				task := app.NewCleanTask(itr)
-				application.AddTask(task)
+			if flags.DstFile == "" {
+				return status.ErrDstFile
 			}
 
-			console.Console(application)
-			application.CheckTask()
-			application.Destroy()
+			err = application.BreakSentence()
+			if err != nil{
+				color.Red("%+v",err)
+			}
 			return nil
 		},
 	}
@@ -34,4 +32,5 @@ var (
 
 func init() {
 	BreakCmd.PersistentFlags().StringSliceVarP(&flags.SrcFiles, "source", "s", []string{}, "单个或多个源文件")
+	BreakCmd.PersistentFlags().StringVarP(&flags.DstFile, "destination", "d", "", "目标文件")
 }

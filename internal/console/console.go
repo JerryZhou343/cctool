@@ -1,14 +1,19 @@
 package console
 
 import (
-	"fmt"
 	"github.com/JerryZhou343/cctool/internal/app"
-	"strings"
+	"github.com/fatih/color"
 )
 
 func Show(application *app.Application) {
 	for {
-		fmt.Printf("%s\n", strings.Trim(application.GetRunningMsg(), "\n"))
+		//fmt.Printf("%s\n", strings.Trim(application.GetRunningMsg(), "\n"))
+		task := application.GetRunningMsg()
+		if task.GetState() == app.TaskStateFailed{
+			color.Red("%s",task)
+		}else{
+			color.Green("%s",task)
+		}
 	}
 }
 

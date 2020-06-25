@@ -7,6 +7,7 @@ require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.170
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.0+incompatible
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
+	github.com/fatih/color v1.9.0
 	github.com/golang/protobuf v1.3.2
 	github.com/kyai/google-translate-tk v0.0.0-20190603073310-c7f5c6d1ce08
 	github.com/panjf2000/ants/v2 v2.3.1

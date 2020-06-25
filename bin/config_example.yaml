@@ -39,42 +39,44 @@ aliyun:
   bucket_domain: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   interval: 1000
 
-# 句子结果中的单词 : 词结果中的单词
+# 断句处理后文件中的词:未断句处理文件中的词
+# after : before
 well_known_word:
-  "b": "bytes"
+  "bytes": "b"
+  "o": "0"
 
-# 词结果中的单词 : 句子结果中的单词
+# 断句处理后文件中的词:未断句处理文件中的词
+# after : before
 well_known_number:
-    "zero":      0
-    "one":       1
-    "two":       2
-    "three":     3
-    "four":      4
-    "five":      5
-    "six":       6
-    "seven":     7
-    "eight":     8
-    "nine":      9
-    "ten":       10
-    "eleven":    11
-    "twelve":    12
-    "thirteen":  13
-    "fourteen":  14
-    "fifteen":   15
-    "sixteen":   16
-    "seventeen": 17
-    "eighteen":  18
-    "nineteen":  19
-    "twenty":    20
-    "thirty":    30
-    "forty":     40
-    "fifty":     50
-    "sixty":     60
-    "seventy":   70
-    "eighty":    80
-    "ninety":    90
-    "thousand":  1000
-    "hundred":   100
-    "million":   1000000
-    "minus":     -0
-
+  "zero":      0
+  "one":       1
+  "two":       2
+  "three":     3
+  "four":      4
+  "five":      5
+  "six":       6
+  "seven":     7
+  "eight":     8
+  "nine":      9
+  "ten":       10
+  "eleven":    11
+  "twelve":    12
+  "thirteen":  13
+  "fourteen":  14
+  "fifteen":   15
+  "sixteen":   16
+  "seventeen": 17
+  "eighteen":  18
+  "nineteen":  19
+  "twenty":    20
+  "thirty":    30
+  "forty":     40
+  "fifty":     50
+  "sixty":     60
+  "seventy":   70
+  "eighty":    80
+  "ninety":    90
+  "thousand":  1000
+  "hundred":   100
+  "million":   1000000
+  "minus":     -0

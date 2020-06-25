@@ -27,6 +27,7 @@ const (
 	TaskTypeConvert
 	TaskTypeMerge
 	TaskTypeClean
+	TaskTypeBreak
 )
 
 type TaskState int
@@ -324,3 +325,47 @@ func (g *CleanTask) Failed(err error) {
 func (g *CleanTask) GetFailedTimes() int {
 	return g.FailedTimes
 }
+
+/*
+type BreakTask struct {
+	SrcFile     string
+	DstFile     string
+	State       TaskState
+	ChannelId   int
+	Err         error
+}
+
+func NewBreakTask(src string) *BreakTask {
+	return &BreakTask{
+		SrcFile: src,
+		DstFile: "",
+		State:   TaskStateInit,
+	}
+}
+
+func (g *BreakTask) String() string {
+	if g.Err == nil {
+		return fmt.Sprintf("[断句] 源文件: %s 目标文件: %s  状态: %s",
+			g.SrcFile, g.DstFile,  g.State)
+	} else {
+		return fmt.Sprintf("[断句] 源文件: %s 目标文件: %s  状态: %s 错误: %+v",
+			g.SrcFile, g.DstFile,  g.State, g.Err)
+	}
+}
+
+func (g *BreakTask) Type() TaskType {
+	return TaskTypeBreak
+}
+
+func (g *BreakTask) GetState() TaskState {
+	return g.State
+}
+
+func (g *BreakTask) Failed(err error) {
+	g.Err = err
+}
+
+func (g *BreakTask) GetFailedTimes() int {
+	return 0
+}
+ */

@@ -19,4 +19,5 @@ func init() {
 	RootCmd.AddCommand(&generateCmd)
 	RootCmd.AddCommand(&convertCmd)
 	RootCmd.AddCommand(&cleanCmd)
+	RootCmd.AddCommand(&BreakCmd)
 }
