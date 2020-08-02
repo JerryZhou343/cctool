@@ -24,7 +24,7 @@ import (
 var ()
 
 const (
-	regexNumber = `^[\-0-9][0-9]*(.[0-9]+)?$`
+	regexNumber = `^[\-0-9][0-9]*(.[0-9]+)?[%]*$`
 )
 
 type Speech struct {
@@ -365,8 +365,9 @@ func (s *Speech) NewBreakSentence(channelId int, rsp *Response) (ret []*srt.Srt,
 				word := strings.ToLower(strings.TrimSpace(rsp.Result.Words[wIdx].Word))
 
 				//logrus.Debugf("sw:%s , w: %s  info: %+v\n", sword, word, rsp.Result.Words[wIdx])
-				if s.Equal(sword, word) {
 
+				logrus.Debugf("sequence: %d after(word):[%s] before (sentence word):[%s]  ",itr.Sequence, word, sword)
+				if s.Equal(sword, word) {
 					//句子首词匹配
 					if swIdx == 0 {
 						itr.Start = utils.MillisDurationConv(rsp.Result.Words[wIdx].BeginTime)
@@ -378,7 +379,6 @@ func (s *Speech) NewBreakSentence(channelId int, rsp *Response) (ret []*srt.Srt,
 					//判断栈中是否为空
 					if len(swStack) > 0 {
 						//前一个句子没有处理完
-						logrus.Warnf("sequence: %d after(word):[%s] before (sentence word):[%s]  ",itr.Sequence, word, sword)
 						if swIdx == 0 {
 							ret[sIdx-1].End = utils.MillisDurationConv(rsp.Result.Words[wIdx].BeginTime)
 						}
@@ -394,7 +394,7 @@ func (s *Speech) NewBreakSentence(channelId int, rsp *Response) (ret []*srt.Srt,
 					curIdx = wIdx + 1
 					break //配对下一个词
 				} else {
-					logrus.Warnf("sequence: %d after(word):[%s] before (sentence word):[%s]  ",itr.Sequence, word, sword)
+					logrus.Warnf("word not equal!!! sequence: %d after(word):[%s] before (sentence word):[%s]  ",itr.Sequence, word, sword)
 					//词结果中需要暂存的情况
 					if _, ok := s.wellKnownNumber[word]; ok {
 						wStack = append(wStack, &srt.Srt{

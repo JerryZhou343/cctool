@@ -44,6 +44,14 @@ aliyun:
 well_known_word:
   "bytes": "b"
   "o": "0"
+  "com": "amazon.com"
+  "eighth": "8th"
+  "foot": "ft"
+  "kilobytes": "kb"
+  "megabytes": "mb"
+  "byte": "b"
+  "gigabyte": "gb"
+  "megabyte": "mb"
 
 # 断句处理后文件中的词:未断句处理文件中的词
 # after : before
