@@ -134,4 +134,10 @@ Q: google.json 是什么文件，怎么获得
 
 A: google.json 是google的认证文件，通过google云的项目控制台下配置获得
 
+Q: 如何获得人工支持
+
+A: VX 联系我 
+
+![vx](./doc/WechatIMG78.jpeg)
+
 
