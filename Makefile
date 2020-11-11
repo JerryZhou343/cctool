@@ -11,3 +11,5 @@ clean:
 
 windows:
 	GOOS=windows GOARCH=amd64 go build -o bin/cctool.exe cmd/main.go
+win32:
+	GOOS=windows GOARCH=386 go build -o bin/cctool.exe cmd/main.go
