@@ -353,6 +353,7 @@ func (a *Application) convert() {
 				task.State = TaskStateInit
 				err = task.Init()
 				if err != nil {
+					logrus.Errorf("task init failed. err:[%v]")
 					task.State = TaskStateFailed
 					task.Failed(err)
 					return
@@ -360,8 +361,10 @@ func (a *Application) convert() {
 
 				src, err = bcc.Open(task.SrcFile)
 				if err != nil {
+					logrus.Errorf("open file failed. err:[%v]",err)
 					task.State = TaskStateFailed
 					task.Failed(err)
+					return
 				}
 
 				//doing
@@ -397,6 +400,7 @@ func (a *Application) clean() {
 				task.State = TaskStateInit
 				err = task.Init()
 				if err != nil {
+					logrus.Errorf("task init failed. err:[%v]",err)
 					task.State = TaskStateFailed
 					task.Failed(err)
 					return
@@ -404,6 +408,7 @@ func (a *Application) clean() {
 
 				src, err = srt.Open(task.SrcFile)
 				if err != nil {
+					logrus.Errorf("open file failed. err:[%v]",err)
 					task.State = TaskStateFailed
 					task.Failed(err)
 					return
